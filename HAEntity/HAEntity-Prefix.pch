@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'HAEntity' target in the 'HAEntity' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+#endif
