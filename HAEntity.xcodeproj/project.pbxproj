@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		39235DC1883647BD857523D6 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54938FEC7E9446ABA70AFA9 /* libPods.a */; };
 		4B291F431719CEC500226D8C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F421719CEC500226D8C /* Foundation.framework */; };
 		4B291F481719CEC500226D8C /* HAEntity.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4B291F471719CEC500226D8C /* HAEntity.h */; };
 		4B291F4A1719CEC500226D8C /* HAEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B291F491719CEC500226D8C /* HAEntity.m */; };
@@ -16,6 +17,11 @@
 		4B291F581719CEC500226D8C /* libHAEntity.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F3F1719CEC500226D8C /* libHAEntity.a */; };
 		4B291F5E1719CEC500226D8C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4B291F5C1719CEC500226D8C /* InfoPlist.strings */; };
 		4B291F611719CEC500226D8C /* HAEntityTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B291F601719CEC500226D8C /* HAEntityTests.m */; };
+		4BB63D511719D24300CF0A0C /* HAEntityManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB63D501719D24300CF0A0C /* HAEntityManager.m */; };
+		4BB63D541719D28600CF0A0C /* HAEntityManagerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */; };
+		4BBC68F81719D93A008D1775 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BBC68F71719D93A008D1775 /* libPods.a */; };
+		4BBC68FA1719D9C5008D1775 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BBC68F91719D9C5008D1775 /* libsqlite3.dylib */; };
+		4BBC68FB1719D9CE008D1775 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BBC68F91719D9C5008D1775 /* libsqlite3.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +60,14 @@
 		4B291F5D1719CEC500226D8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4B291F5F1719CEC500226D8C /* HAEntityTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HAEntityTests.h; sourceTree = "<group>"; };
 		4B291F601719CEC500226D8C /* HAEntityTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HAEntityTests.m; sourceTree = "<group>"; };
+		4BB63D4F1719D24300CF0A0C /* HAEntityManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityManager.h; sourceTree = "<group>"; };
+		4BB63D501719D24300CF0A0C /* HAEntityManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityManager.m; sourceTree = "<group>"; };
+		4BB63D521719D28600CF0A0C /* HAEntityManagerTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityManagerTest.h; sourceTree = "<group>"; };
+		4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityManagerTest.m; sourceTree = "<group>"; };
+		4BBC68F71719D93A008D1775 /* libPods.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPods.a; path = "../Pods/build/Release-iphoneos/libPods.a"; sourceTree = "<group>"; };
+		4BBC68F91719D9C5008D1775 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		B54938FEC7E9446ABA70AFA9 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA457FEDC144499897ED1DD6 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,7 +75,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4BBC68FA1719D9C5008D1775 /* libsqlite3.dylib in Frameworks */,
 				4B291F431719CEC500226D8C /* Foundation.framework in Frameworks */,
+				39235DC1883647BD857523D6 /* libPods.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +85,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4BBC68FB1719D9CE008D1775 /* libsqlite3.dylib in Frameworks */,
+				4BBC68F81719D93A008D1775 /* libPods.a in Frameworks */,
 				4B291F521719CEC500226D8C /* SenTestingKit.framework in Frameworks */,
 				4B291F541719CEC500226D8C /* UIKit.framework in Frameworks */,
 				4B291F551719CEC500226D8C /* Foundation.framework in Frameworks */,
@@ -82,10 +100,12 @@
 		4B291F361719CEC500226D8C = {
 			isa = PBXGroup;
 			children = (
+				4BBC68F91719D9C5008D1775 /* libsqlite3.dylib */,
 				4B291F441719CEC500226D8C /* HAEntity */,
 				4B291F591719CEC500226D8C /* HAEntityTests */,
 				4B291F411719CEC500226D8C /* Frameworks */,
 				4B291F401719CEC500226D8C /* Products */,
+				FA457FEDC144499897ED1DD6 /* Pods.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -104,6 +124,7 @@
 				4B291F421719CEC500226D8C /* Foundation.framework */,
 				4B291F511719CEC500226D8C /* SenTestingKit.framework */,
 				4B291F531719CEC500226D8C /* UIKit.framework */,
+				B54938FEC7E9446ABA70AFA9 /* libPods.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -113,6 +134,8 @@
 			children = (
 				4B291F471719CEC500226D8C /* HAEntity.h */,
 				4B291F491719CEC500226D8C /* HAEntity.m */,
+				4BB63D4F1719D24300CF0A0C /* HAEntityManager.h */,
+				4BB63D501719D24300CF0A0C /* HAEntityManager.m */,
 				4B291F451719CEC500226D8C /* Supporting Files */,
 			);
 			path = HAEntity;
@@ -131,6 +154,9 @@
 			children = (
 				4B291F5F1719CEC500226D8C /* HAEntityTests.h */,
 				4B291F601719CEC500226D8C /* HAEntityTests.m */,
+				4BB63D521719D28600CF0A0C /* HAEntityManagerTest.h */,
+				4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */,
+				4BBC68F71719D93A008D1775 /* libPods.a */,
 				4B291F5A1719CEC500226D8C /* Supporting Files */,
 			);
 			path = HAEntityTests;
@@ -152,9 +178,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4B291F641719CEC500226D8C /* Build configuration list for PBXNativeTarget "HAEntity" */;
 			buildPhases = (
+				B6B7BD838C824A169883E557 /* Check Pods Manifest.lock */,
 				4B291F3B1719CEC500226D8C /* Sources */,
 				4B291F3C1719CEC500226D8C /* Frameworks */,
 				4B291F3D1719CEC500226D8C /* CopyFiles */,
+				5768A4396A1D4AC2B006B64F /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -236,6 +264,34 @@
 			shellPath = /bin/sh;
 			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
 		};
+		5768A4396A1D4AC2B006B64F /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Pods-resources.sh\"\n";
+		};
+		B6B7BD838C824A169883E557 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sanbox is not in sync with the Podfile.lock. Run 'pod install'.\nEOM\n    exit 1\nfi\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -244,6 +300,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B291F4A1719CEC500226D8C /* HAEntity.m in Sources */,
+				4BB63D511719D24300CF0A0C /* HAEntityManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -252,6 +309,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B291F611719CEC500226D8C /* HAEntityTests.m in Sources */,
+				4BB63D541719D28600CF0A0C /* HAEntityManagerTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,6 +390,7 @@
 		};
 		4B291F651719CEC500226D8C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FA457FEDC144499897ED1DD6 /* Pods.xcconfig */;
 			buildSettings = {
 				DSTROOT = /tmp/HAEntity.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -344,6 +403,7 @@
 		};
 		4B291F661719CEC500226D8C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FA457FEDC144499897ED1DD6 /* Pods.xcconfig */;
 			buildSettings = {
 				DSTROOT = /tmp/HAEntity.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -357,13 +417,19 @@
 		4B291F681719CEC500226D8C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
 					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "HAEntity/HAEntity-Prefix.pch";
+				HEADER_SEARCH_PATHS = "${PODS_HEADERS_SEARCH_PATHS}";
 				INFOPLIST_FILE = "HAEntityTests/HAEntityTests-Info.plist";
+				PODS_BUILD_HEADERS_SEARCH_PATHS = "\"${PODS_ROOT}/BuildHeaders\" \"${PODS_ROOT}/BuildHeaders/FMDB\"";
+				PODS_HEADERS_SEARCH_PATHS = "${PODS_PUBLIC_HEADERS_SEARCH_PATHS}";
+				PODS_PUBLIC_HEADERS_SEARCH_PATHS = "\"${PODS_ROOT}/Headers\" \"${PODS_ROOT}/Headers/FMDB\"";
+				PODS_ROOT = "${SRCROOT}/Pods";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
 			};
@@ -372,13 +438,19 @@
 		4B291F691719CEC500226D8C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
 					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "HAEntity/HAEntity-Prefix.pch";
+				HEADER_SEARCH_PATHS = "${PODS_HEADERS_SEARCH_PATHS}";
 				INFOPLIST_FILE = "HAEntityTests/HAEntityTests-Info.plist";
+				PODS_BUILD_HEADERS_SEARCH_PATHS = "\"${PODS_ROOT}/BuildHeaders\" \"${PODS_ROOT}/BuildHeaders/FMDB\"";
+				PODS_HEADERS_SEARCH_PATHS = "${PODS_PUBLIC_HEADERS_SEARCH_PATHS}";
+				PODS_PUBLIC_HEADERS_SEARCH_PATHS = "\"${PODS_ROOT}/Headers\" \"${PODS_ROOT}/Headers/FMDB\"";
+				PODS_ROOT = "${SRCROOT}/Pods";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = octest;
 			};
@@ -403,6 +475,7 @@
 				4B291F661719CEC500226D8C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4B291F671719CEC500226D8C /* Build configuration list for PBXNativeTarget "HAEntityTests" */ = {
 			isa = XCConfigurationList;
@@ -411,6 +484,7 @@
 				4B291F691719CEC500226D8C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
