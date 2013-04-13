@@ -8,11 +8,6 @@
 
 #import "HAEntityManager.h"
 
-#ifdef DEBUG
-# define LOG(...) NSLog(__VA_ARGS__)
-#else
-# define LOG(...) ;
-#endif
 
 @implementation HAEntityManager
 

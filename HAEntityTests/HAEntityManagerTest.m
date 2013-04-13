@@ -15,9 +15,8 @@
 - (void)setUp
 {
     [super setUp];
-    NSArray* docPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    dbFilePath = [[docPaths objectAtIndex:0] stringByAppendingString:@"/HAEntity_HAEntityManagerTest.sqlite"];
-    dbFilePath2 = [[docPaths objectAtIndex:0] stringByAppendingString:@"/HAEntity_HAEntityManagerTest2.sqlite"];
+    dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HAEntityManagerTest.sqlite"];
+    dbFilePath2 = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HAEntityManagerTest2.sqlite"];
     // Set-up code here.
 }
 

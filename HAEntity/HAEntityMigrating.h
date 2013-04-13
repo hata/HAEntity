@@ -1,5 +1,5 @@
 //
-//  HAEntity.h
+//  HAEntityMigrating.h
 //  HAEntity
 //
 //  Created by Hiroki Ata on 13/04/13.
@@ -7,8 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "FMDatabase.h"
 
-
-@interface HAEntity : NSObject
+@protocol HAEntityMigrating <NSObject>
+@optional
+- (void) up:(FMDatabase*)db;
+- (void) down:(FMDatabase*)db;
 
 @end

@@ -8,6 +8,11 @@
 #import <Foundation/Foundation.h>
 #import "FMDatabaseQueue.h"
 
+#ifdef DEBUG
+# define LOG(...) NSLog(__VA_ARGS__)
+#else
+# define LOG(...) ;
+#endif
 
 /**
  * HAEntityManager* entityManager = [HAEntityManager instance:dbFilePath];
@@ -111,13 +116,12 @@
 
 
 /**
- * Add HADataEntity class to this instance. After adding it,
+ * Add HABaseEntity class to this instance. After adding it,
  * instanceForEntity can return this EntityManager instance
  * for a specific class.
  * @param entityClass is a registered class.
  */
 - (void) addEntityClass:(Class) entityClass;
-
 
 /**
  * Remove added entityClass entry from this instance.
