@@ -13,20 +13,16 @@
 #import "HATableEntityMigration.h"
 
 
-#define HA_DATA_ENTITY_DB_FILE_PATH @"/test2.sqlite"
-#define HA_DATA_ENTITY_DB_FILE_PATH2 @"/test2b.sqlite"
 
 @interface HATestDataMock : HATableEntity {
 @private
     NSInteger integerProp;
     NSUInteger uintegerProp;
-    
     long longProp;
     long long longlongProp;
-    
     char charProp;
     short shortProp;
-    
+
     unsigned char ucharProp;
     unsigned short ushortProp;
     unsigned int uintProp;
@@ -41,7 +37,6 @@
     NSString* stringProp;
     NSDate* dateProp;
     NSData* dataProp;
-    
 }
 
 @property NSInteger integerProp;
@@ -67,7 +62,6 @@
 @property NSString* stringProp;
 @property NSDate* dateProp;
 @property NSData* dataProp;
-
 
 @end
 
@@ -145,11 +139,6 @@
 @synthesize numValue;
 @synthesize stringValue;
 
-+ (void) alterTable:(FMDatabase*)database
-{
-    [database executeUpdate:@"ALTER TABLE test_table1 ADD COLUMN stringValue TEXT;"];
-}
-
 + (NSString*)tableName
 {
     return @"test_table1";
@@ -204,6 +193,43 @@ static BOOL unprepareIsCalled = FALSE;
 
 
 
+@interface HATestSample4 : HATableEntity {
+@private
+    NSNumber* numberValue;
+}
+
++ (NSString*) tableName;
+
+@property NSNumber* numberValue;
+
+@end
+
+@implementation HATestSample4
+
+@dynamic numberValue;
+
++ (NSString*)tableName
+{
+    return @"test_table4";
+}
+
++ (NSString*) convertPropertyToColumnName:(NSString*) propertyName
+{
+    return [NSString stringWithFormat:@"%@C", propertyName];
+}
+
++ (NSString*) convertColumnToPropertyName:(NSString*) columnName
+{
+    return [NSString stringWithFormat:@"%@P", columnName];
+}
+@end
+
+
+
+
+
+#pragma mark -
+#pragma mark HABaseEntityTest
 
 @implementation HABaseEntityTest
 
@@ -211,11 +237,8 @@ static BOOL unprepareIsCalled = FALSE;
 {
     [super setUp];
 
-//    NSArray* docPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    dbFilePath = [NSTemporaryDirectory() stringByAppendingString:HA_DATA_ENTITY_DB_FILE_PATH];
+    dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HABaseEntityTest.sqlite"];
     [HAEntityManager instanceForPath:dbFilePath];
-
-    // [HATestSample2 class],
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
                                                                           entityClasses:[HATestDataMock class], [HATestSample1 class], [HATestSample3 class], nil];
     [[HAEntityManager instance] up:2 migratings:migration, nil];
@@ -226,7 +249,6 @@ static BOOL unprepareIsCalled = FALSE;
     // Tear-down code here.
     [[HAEntityManager instance] remove];
     
-    // Tear-down code here.
     NSError* error;
     NSFileManager* manager = [NSFileManager defaultManager];
     if ([manager fileExistsAtPath:dbFilePath]) {
@@ -240,28 +262,168 @@ static BOOL unprepareIsCalled = FALSE;
 }
 
 
-// Right now, I disabled multiple db usage.
-// I think createDatabase, getDatabase, removeDatabase should be
-// override. After that, the class can access different db.
-// And right now, there is a problem in cache.
-/*
- - (void)testMultiDatabases
- {
- [HATestSample1 configure:dbFilePath];
- [HATestSample2 configure:dbFilePath2];
- 
- HATestSample1* sample1 = [HATestSample1 new];
- sample1.numValue = 1;
- [sample1 save];
- 
- HATestSample2* sample2 = [HATestSample2 new];
- sample2.numValue = 2;
- [sample2 save];
- 
- STAssertEquals(1, sample1.rowid, @"Verify different db is used. So, rowid is 1.");
- STAssertEquals(1, sample2.rowid, @"Verify different db is used. So, rowid is 1.");
- }*/
 
+- (void)testSelectPrefixForHATestSample1
+{
+    NSString* select = [NSString stringWithFormat:@"SELECT rowid, numValue FROM %@", [HATestSample1 tableName]];
+    STAssertEqualObjects(select, [HATestSample1 selectPrefix], @"Verify SELECT prefix.");
+}
+
+- (void)testSelectPrefixForHATestSample3
+{
+    NSString* select = [NSString stringWithFormat:@"SELECT rowid, numValue, stringValue FROM %@", [HATestSample3 tableName]];
+    STAssertEqualObjects(select, [HATestSample3 selectPrefix], @"Verify SELECT prefix.");
+}
+
+
+- (void)testColumnNamesForHATestSample1
+{
+    NSArray* columnNames = [HATestSample1 columnNames];
+    NSString* names = [columnNames componentsJoinedByString:@","];
+    STAssertEqualObjects(@"numValue", names, @"Verify columns");
+}
+
+- (void)testColumnNamesForHATestSample3
+{
+    NSArray* columnNames = [HATestSample3 columnNames];
+    NSString* names = [columnNames componentsJoinedByString:@","];
+    STAssertEqualObjects(@"numValue,stringValue", names, @"Verify columns");
+}
+
+- (void)testColumnNamesForHATestSample4
+{
+    NSArray* columnNames = [HATestSample4 columnNames];
+    NSString* names = [columnNames componentsJoinedByString:@","];
+    STAssertEqualObjects(@"numberValueC", names, @"Verify columns for dynamic property");
+}
+
+
+- (void)testColumnNamesAndTypes
+{
+    NSMutableArray* columnNames = [NSMutableArray new];
+    NSMutableArray* columnTypes = [NSMutableArray new];
+
+    NSMutableArray* correctNames = [NSMutableArray new];
+    NSMutableArray* correctTypes = [NSMutableArray new];
+    
+    [correctNames addObject:@"integerProp"];
+    [correctNames addObject:@"uintegerProp"];
+    [correctNames addObject:@"longProp"];
+    [correctNames addObject:@"longlongProp"];
+    [correctNames addObject:@"charProp"];
+    [correctNames addObject:@"shortProp"];
+    [correctNames addObject:@"ucharProp"];
+    [correctNames addObject:@"ushortProp"];
+    [correctNames addObject:@"uintProp"];
+    [correctNames addObject:@"ulongProp"];
+    [correctNames addObject:@"ulonglongProp"];
+    [correctNames addObject:@"floatProp"];
+    [correctNames addObject:@"doubleProp"];
+    [correctNames addObject:@"boolProp"];
+    [correctNames addObject:@"stringProp"];
+    [correctNames addObject:@"dateProp"];
+    [correctNames addObject:@"dataProp"];
+
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"REAL"];
+    [correctTypes addObject:@"REAL"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"TEXT"];
+    [correctTypes addObject:@"NUMERIC"];
+    [correctTypes addObject:@"NONE"];
+
+    
+    [HATestDataMock columns:columnNames columnTypes:columnTypes];
+    
+    [columnNames isEqualToArray:correctNames];
+    [columnTypes isEqualToArray:correctTypes];
+    
+}
+
+
+- (void)testPropertyNamesForHATestSample1
+{
+    NSArray* propertyNames = [HATestSample1 propertyNames];
+    NSString* names = [propertyNames componentsJoinedByString:@","];
+    STAssertEqualObjects(@"numValue", names, @"Verify columns");
+}
+
+- (void)testPropertyNamesForHATestSample3
+{
+    NSArray* propertyNames = [HATestSample3 propertyNames];
+    NSString* names = [propertyNames componentsJoinedByString:@","];
+    STAssertEqualObjects(@"numValue,stringValue", names, @"Verify columns");
+}
+
+- (void)testPropertyNamesForHATestSample4
+{
+    NSArray* propertyNames = [HATestSample4 propertyNames];
+    NSString* names = [propertyNames componentsJoinedByString:@","];
+    STAssertEqualObjects(@"numberValue", names, @"Verify columns for dynamic property");
+}
+
+
+
+- (void)testPropertyNamesAndTypes
+{
+    NSMutableArray* propertyNames = [NSMutableArray new];
+    NSMutableArray* propertyTypes = [NSMutableArray new];
+    
+    NSMutableArray* correctNames = [NSMutableArray new];
+    NSMutableArray* correctTypes = [NSMutableArray new];
+    
+    [correctNames addObject:@"integerProp"];
+    [correctNames addObject:@"uintegerProp"];
+    [correctNames addObject:@"longProp"];
+    [correctNames addObject:@"longlongProp"];
+    [correctNames addObject:@"charProp"];
+    [correctNames addObject:@"shortProp"];
+    [correctNames addObject:@"ucharProp"];
+    [correctNames addObject:@"ushortProp"];
+    [correctNames addObject:@"uintProp"];
+    [correctNames addObject:@"ulongProp"];
+    [correctNames addObject:@"ulonglongProp"];
+    [correctNames addObject:@"floatProp"];
+    [correctNames addObject:@"doubleProp"];
+    [correctNames addObject:@"boolProp"];
+    [correctNames addObject:@"stringProp"];
+    [correctNames addObject:@"dateProp"];
+    [correctNames addObject:@"dataProp"];
+
+    [correctTypes addObject:@"i"];
+    [correctTypes addObject:@"I"];
+    [correctTypes addObject:@"l"];
+    [correctTypes addObject:@"q"];
+    [correctTypes addObject:@"c"];
+    [correctTypes addObject:@"s"];
+    [correctTypes addObject:@"C"];
+    [correctTypes addObject:@"S"];
+    [correctTypes addObject:@"I"];
+    [correctTypes addObject:@"L"];
+    [correctTypes addObject:@"Q"];
+    [correctTypes addObject:@"f"];
+    [correctTypes addObject:@"d"];
+    [correctTypes addObject:@"B"];
+    [correctTypes addObject:@"NSString"];
+    [correctTypes addObject:@"NSDate"];
+    [correctTypes addObject:@"NSData"];
+    
+    [HATestDataMock columns:propertyNames columnTypes:propertyTypes];
+    
+    [propertyNames isEqualToArray:correctNames];
+    [propertyTypes isEqualToArray:correctTypes];
+    
+}
 
 - (void)testWhere
 {
@@ -445,7 +607,12 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(ushortProp, data.ushortProp, @"Verify property.");
     STAssertEquals(uintProp, data.uintProp, @"Verify property.");
     STAssertEquals(ulongProp, data.ulongProp, @"Verify property.");
+
+    // TODO: Current CocoaPod doesn't have the correct method for this type.
+#ifdef FMDB_UNSIGNED_LONG_LONG_INT_FOR_COLUMN
     STAssertEquals(ulonglongProp, data.ulonglongProp, @"Verify property.");
+#endif
+    
     STAssertEquals(floatProp, data.floatProp, @"Verify property.");
     STAssertEquals(doubleProp, data.doubleProp, @"Verify property.");
     STAssertEquals(boolProp, data.boolProp, @"Verify property.");
@@ -556,34 +723,6 @@ static BOOL unprepareIsCalled = FALSE;
     
     STAssertNil(data.stringProp, @"Verify nil property");
 }
-
-/*
-- (void)testAlterTable
-{
-    HATestSample1* sample1 = [HATestSample1 new];
-    sample1.numValue = 1;
-    [sample1 save];
-
-    [[HAEntityManager instance] close];
-    
-    // Re initialize configuration.
-    [HAEntityManager instanceForPath:dbFilePath];
-    
-    // And then updated table is used for created database.
-    HATestSample2* sample2 = [HATestSample2 new];
-    sample2.numValue = 2;
-    sample2.stringValue = @"foo";
-    [sample2 save];
-    
-    sample2 = [HATestSample2 find:sample2.rowid];
-    STAssertEquals(2, sample2.numValue, @"Verify num value.");
-    STAssertEqualObjects(@"foo", sample2.stringValue, @"Verify string value.");
-    
-    sample2 = [HATestSample2 find:sample1.rowid];
-    STAssertEquals(1, sample2.numValue, @"Verify the same table should be read.");
-    STAssertNil(sample2.stringValue, @"Verify default nil.");
-}
-*/
 
 
 @end

@@ -127,6 +127,13 @@ static NSString* getPropertyType(objc_property_t property) {
     free(properties);
 }
 
++ (NSArray*) propertyNames
+{
+    NSMutableArray *propertyNames = [NSMutableArray arrayWithCapacity:0];
+    [self properties:propertyNames propertyTypes:nil];
+    return propertyNames;
+}
+
 + (void) properties:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
 {
     unsigned int outCount, i;
@@ -150,11 +157,12 @@ static NSString* getPropertyType(objc_property_t property) {
     return propertyName;
 }
 
+/*
 + (NSString*) convertColumnToPropertyName:(NSString*) columnName
 {
     return columnName;
 }
-
+*/
 
 
 /**

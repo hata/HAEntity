@@ -178,7 +178,7 @@ NSString* PRIMARY_KEY_COLUMN_NAME = @"rowid";
         
         // insert.
         [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
-            LOG(@"insert SQL: %@", insertSQL);
+            //LOG(@"insert SQL: %@", insertSQL);
             result = [db executeUpdate:insertSQL withArgumentsInArray:values];
             _rowid = [db lastInsertRowId];
             _isNew = FALSE;
