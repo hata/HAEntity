@@ -9,11 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "HAEntityMigrating.h"
 
-@interface HATableMigration : NSObject<HAEntityMigrating> {
+@interface HATableEntityMigration : NSObject<HAEntityMigrating> {
 @private
+    NSInteger _version;
     NSMutableArray* _classes;
 }
 
-- (id) initWithEntityClasses:(Class) clazz, ... NS_REQUIRES_NIL_TERMINATION;
+- (id) initWithVersion:(NSInteger)version entityClasses:(Class)entityClass, ... NS_REQUIRES_NIL_TERMINATION;
 
 @end

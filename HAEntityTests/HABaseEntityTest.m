@@ -10,6 +10,8 @@
 #import "HABaseEntityTest.h"
 #import "HABaseEntity.h"
 #import "HATableEntity.h"
+#import "HATableEntityMigration.h"
+
 
 #define HA_DATA_ENTITY_DB_FILE_PATH @"/test2.sqlite"
 #define HA_DATA_ENTITY_DB_FILE_PATH2 @"/test2b.sqlite"
@@ -212,6 +214,11 @@ static BOOL unprepareIsCalled = FALSE;
 //    NSArray* docPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     dbFilePath = [NSTemporaryDirectory() stringByAppendingString:HA_DATA_ENTITY_DB_FILE_PATH];
     [HAEntityManager instanceForPath:dbFilePath];
+
+    // [HATestSample2 class],
+    HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
+                                                                          entityClasses:[HATestDataMock class], [HATestSample1 class], [HATestSample3 class], nil];
+    [[HAEntityManager instance] up:2 migratings:migration, nil];
 }
 
 - (void)tearDown

@@ -239,12 +239,79 @@ static NSMutableDictionary* _managerInstances = nil;
     }
 }
 
-- (void) migrate
+
+
+- (void) HA_migrate:(BOOL)up toVersion:(NSInteger)toVersion migrating:(id<HAEntityMigrating>)migrating list:(va_list)args
 {
-    // TODO: Create table, index, alter table, and so on.
+    NSMutableArray* migs = [NSMutableArray new];
+    NSInteger fromVersion = up ? INT_MIN : INT_MAX; // TODO: This should get from db.
+
+
+    [migs addObject:migrating];
+    migrating = va_arg(args, id<HAEntityMigrating>);
+    while (migrating) {
+        [migs addObject:migrating];
+        migrating = va_arg(args, id<HAEntityMigrating>);
+    }
+    
+    NSSortDescriptor* sorter = [[NSSortDescriptor alloc] initWithKey:@"version" ascending:up];
+    [migs sortUsingDescriptors:[NSArray arrayWithObject:sorter]];
+    
+    [migs enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        id<HAEntityMigrating> sortedMigrating = obj;
+        
+        if (up) {
+            if (sortedMigrating.version <= fromVersion) {
+                // skip.
+            } else if (sortedMigrating.version <= toVersion) {
+                [self accessDatabase:^(FMDatabase *db) {
+                    [obj up:db];
+                }];
+            } else {
+                *stop = TRUE;
+            }
+        } else {
+            if (sortedMigrating.version > fromVersion) {
+                // skip.
+            } else if (sortedMigrating.version > toVersion) {
+                [self accessDatabase:^(FMDatabase *db) {
+                    [obj down:db];
+                }];
+            } else {
+                *stop = TRUE;
+            }
+        }
+    }];
+    
+    // TODO: Set a new version to metadata table.
 }
 
 
+- (void) up:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ...
+{
+    if (!migratings) {
+        return;
+    }
+    
+    va_list args;
+    va_start(args,migratings);
+    va_end(args);
+    
+    [self HA_migrate:TRUE toVersion:toVersion migrating:migratings list:args];
+}
+
+- (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ...
+{
+    if (!migratings) {
+        return;
+    }
+
+    va_list args;
+    va_start(args,migratings);
+    va_end(args);
+    
+    [self HA_migrate:FALSE toVersion:toVersion migrating:migratings list:args];
+}
 
 
 @end

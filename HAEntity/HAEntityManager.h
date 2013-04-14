@@ -7,12 +7,14 @@
 
 #import <Foundation/Foundation.h>
 #import "FMDatabaseQueue.h"
+#import "HAEntityMigrating.h"
 
 #ifdef DEBUG
 # define LOG(...) NSLog(__VA_ARGS__)
 #else
 # define LOG(...) ;
 #endif
+
 
 /**
  * HAEntityManager* entityManager = [HAEntityManager instance:dbFilePath];
@@ -131,9 +133,18 @@
 
 
 /**
- * Setup database.
+ * migrate to higher version.
+ * @param toVersion is the highest version which is included.
+ * @param migratings are called to migrate.
  */
-- (void) migrate;
+- (void) up:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+/**
+ * migrate to lower version.
+ * @param toVersion is the lowest version which is included.
+ * @param migratings are called to migrate.
+ */
+- (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
 
 
 @end

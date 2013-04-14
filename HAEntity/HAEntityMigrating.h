@@ -10,8 +10,10 @@
 #import "FMDatabase.h"
 
 @protocol HAEntityMigrating <NSObject>
-@optional
+@required
 - (void) up:(FMDatabase*)db;
 - (void) down:(FMDatabase*)db;
+
+@property (readonly) NSInteger version;
 
 @end

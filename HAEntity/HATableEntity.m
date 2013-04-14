@@ -12,7 +12,7 @@
 @implementation HATableEntity
 
 NSString* PRIMARY_KEY_PROP_NAME = @"rowid";
-NSString* PRIMARY_KEY_COLUMN_NAME = @"id";
+NSString* PRIMARY_KEY_COLUMN_NAME = @"rowid";
 
 @synthesize rowid = _rowid;
 
@@ -87,7 +87,7 @@ NSString* PRIMARY_KEY_COLUMN_NAME = @"id";
     
     NSString* querySQLByPrimaryKey = nil;
     if (nil == querySQLByPrimaryKey) {
-        querySQLByPrimaryKey = [NSString stringWithFormat:@"%@ %@", [self selectPrefix], @"WHERE id = ?"];
+        querySQLByPrimaryKey = [NSString stringWithFormat:@"%@ WHERE %@ = ?", [self selectPrefix], PRIMARY_KEY_COLUMN_NAME];
     }
     
     [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
@@ -178,6 +178,7 @@ NSString* PRIMARY_KEY_COLUMN_NAME = @"id";
         
         // insert.
         [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
+            LOG(@"insert SQL: %@", insertSQL);
             result = [db executeUpdate:insertSQL withArgumentsInArray:values];
             _rowid = [db lastInsertRowId];
             _isNew = FALSE;

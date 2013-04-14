@@ -10,6 +10,68 @@
 #import "HAEntityManager.h"
 #import "FMDatabase.h"
 
+
+
+@interface HAEntityManagerTestMigration : NSObject<HAEntityMigrating> {
+@private
+    NSInteger _version;
+    NSInteger upCount;
+    NSInteger downCount;
+    NSMutableArray* _upOrder;
+    NSMutableArray* _downOrder;
+}
+
+@property NSInteger upCount;
+@property NSInteger downCount;
+
+@end
+
+
+@implementation HAEntityManagerTestMigration
+
+@synthesize version = _version;
+@synthesize upCount;
+@synthesize downCount;
+
+- (id) initWithVersion:(NSInteger)version
+{
+    if (self = [super init]) {
+        _version = version;
+        upCount = 0;
+        downCount = 0;
+        _upOrder = nil;
+        _downOrder = nil;
+    }
+    return self;
+}
+
+- (id) initWithVersion:(NSInteger)version upOrder:(NSMutableArray*)upOrder downOrder:(NSMutableArray*)downOrder
+{
+    if (self = [super init]) {
+        _version = version;
+        upCount = 0;
+        downCount = 0;
+        _upOrder = upOrder;
+        _downOrder = downOrder;
+    }
+    return self;
+}
+
+- (void) up:(FMDatabase *)db
+{
+    upCount = upCount+1;
+    [_upOrder addObject:[NSNumber numberWithInt:_version]];
+}
+
+- (void) down:(FMDatabase *)db
+{
+    downCount = downCount+1;
+    [_downOrder addObject:[NSNumber numberWithInt:_version]];
+}
+
+@end
+
+
 @implementation HAEntityManagerTest
 
 - (void)setUp
@@ -233,4 +295,184 @@
     
     STAssertFalse(result, @"Verify INSERT SQLs are rollbacked.");
 }
+
+
+- (void)testUpToMax
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager up:INT_MAX migratings:migration1, migration2, migration3, nil];
+
+    STAssertEquals(1, migration1.upCount, @"Verify migration1.up is called");
+    STAssertEquals(1, migration2.upCount, @"Verify migration2.up is called");
+    STAssertEquals(1, migration3.upCount, @"Verify migration3.up is called");
+    STAssertEquals(0, migration1.downCount, @"Verify migration1.down is not called");
+    STAssertEquals(0, migration2.downCount, @"Verify migration2.down is not called");
+    STAssertEquals(0, migration3.downCount, @"Verify migration3.down is not called");
+}
+
+- (void)testUpSomeVersions
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager up:2 migratings:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(1, migration1.upCount, @"Verify migration1.up is called");
+    STAssertEquals(1, migration2.upCount, @"Verify migration2.up is called. The same toVersion is called.");
+    STAssertEquals(0, migration3.upCount, @"Verify migration3.up is not called");
+    STAssertEquals(0, migration1.downCount, @"Verify migration1.down is not called");
+    STAssertEquals(0, migration2.downCount, @"Verify migration2.down is not called");
+    STAssertEquals(0, migration3.downCount, @"Verify migration3.down is not called");
+}
+
+- (void)testUpNoVersion
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager up:0 migratings:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(0, migration1.upCount, @"Verify migration1.up is not called");
+    STAssertEquals(0, migration2.upCount, @"Verify migration2.up is not called");
+    STAssertEquals(0, migration3.upCount, @"Verify migration3.up is not called");
+    STAssertEquals(0, migration1.downCount, @"Verify migration1.down is not called");
+    STAssertEquals(0, migration2.downCount, @"Verify migration2.down is not called");
+    STAssertEquals(0, migration3.downCount, @"Verify migration3.down is not called");
+}
+
+- (void)testDownMin
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager down:INT_MIN migratings:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(0, migration1.upCount, @"Verify migration1.up is not called");
+    STAssertEquals(0, migration2.upCount, @"Verify migration2.up is not called");
+    STAssertEquals(0, migration3.upCount, @"Verify migration3.up is not called");
+    STAssertEquals(1, migration1.downCount, @"Verify migration1.down is called");
+    STAssertEquals(1, migration2.downCount, @"Verify migration2.down is called");
+    STAssertEquals(1, migration3.downCount, @"Verify migration3.down is called");
+}
+
+- (void)testDownSomeVersions
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager down:2 migratings:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(0, migration1.upCount, @"Verify migration1.up is not called");
+    STAssertEquals(0, migration2.upCount, @"Verify migration2.up is not called");
+    STAssertEquals(0, migration3.upCount, @"Verify migration3.up is not called");
+    STAssertEquals(0, migration1.downCount, @"Verify migration1.down is not called");
+    STAssertEquals(0, migration2.downCount, @"Verify migration2.down is not called. The same toVersion for down is NOT called.");
+    STAssertEquals(1, migration3.downCount, @"Verify migration3.down is called");
+}
+
+- (void)testDownNoVersion
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager down:3 migratings:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(0, migration1.upCount, @"Verify migration1.up is not called");
+    STAssertEquals(0, migration2.upCount, @"Verify migration2.up is not called");
+    STAssertEquals(0, migration3.upCount, @"Verify migration3.up is not called");
+    STAssertEquals(0, migration1.downCount, @"Verify migration1.down is not called");
+    STAssertEquals(0, migration2.downCount, @"Verify migration2.down is not called");
+    STAssertEquals(0, migration3.downCount, @"Verify migration3.down is not called");
+}
+
+
+- (void)testUpToMaxCheckOrder
+{
+    NSMutableArray* upOrder = [NSMutableArray new];
+    NSMutableArray* downOrder = [NSMutableArray new];
+
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3 upOrder:upOrder downOrder:downOrder];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager up:INT_MAX migratings:migration1, migration2, migration3, nil];
+    STAssertEqualObjects(@"1,2,3", [upOrder componentsJoinedByString:@","], @"Verify call order.");
+
+    [upOrder removeAllObjects];
+    
+    [manager up:INT_MAX migratings:migration3, migration2, migration1, nil];
+    STAssertEqualObjects(@"1,2,3", [upOrder componentsJoinedByString:@","], @"Verify call order.");
+}
+
+- (void)testDownMinCheckOrder
+{
+    NSMutableArray* upOrder = [NSMutableArray new];
+    NSMutableArray* downOrder = [NSMutableArray new];
+    
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3 upOrder:upOrder downOrder:downOrder];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager down:INT_MIN migratings:migration1, migration2, migration3, nil];
+    STAssertEqualObjects(@"3,2,1", [downOrder componentsJoinedByString:@","], @"Verify call order.");
+    
+    [downOrder removeAllObjects];
+    
+    [manager down:INT_MIN migratings:migration3, migration2, migration1, nil];
+    STAssertEqualObjects(@"3,2,1", [downOrder componentsJoinedByString:@","], @"Verify call order.");
+}
+
+- (void)testUpNil
+{
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager up:INT_MAX migratings:nil];
+    
+    // Just verify no exception.
+}
+
+- (void)testUpOneMigration
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager up:INT_MAX migratings:migration1, nil];
+
+    STAssertEquals(1, [migration1 upCount], @"Verify up is called.");
+}
+
+- (void)testDownNil
+{
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager down:INT_MIN migratings:nil];
+    
+    // Just verify no exception.
+}
+
+- (void)testDownOneMigration
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager down:INT_MIN migratings:migration1,nil];
+    STAssertEquals(1, [migration1 downCount], @"Verify down is called.");
+}
+
 @end

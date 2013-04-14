@@ -11,7 +11,6 @@
 #import "FMDatabase.h"
 
 
-typedef void (^HABaseEntityAccessDatabaseHandler)(FMDatabase* db);
 typedef void (^HABaseEntityEachHandler)(id entity);
 
 /**
@@ -36,6 +35,7 @@ typedef void (^HABaseEntityEachHandler)(id entity);
 + (NSArray*) where:(NSString*) params, ...;
 + (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params, ...;
 + (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params list:(va_list)args;
+
 
 + (NSString*) convertPropertyToColumnName:(NSString*) propertyName;
 + (NSString*) convertColumnToPropertyName:(NSString*) columnName;
