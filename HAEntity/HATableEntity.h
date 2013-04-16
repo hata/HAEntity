@@ -21,7 +21,6 @@
 + (NSString*) tableName;
 
 + (NSString*) convertPropertyToColumnName:(NSString*) propertyName;
-+ (NSString*) convertColumnToPropertyName:(NSString*) columnName;
 
 + (id) find:(sqlite_int64)rowid;
 

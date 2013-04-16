@@ -28,6 +28,7 @@
 		4BBC69071719FDC4008D1775 /* HAViewEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC69061719FDC4008D1775 /* HAViewEntity.m */; };
 		4BBC690B171A203D008D1775 /* HATableEntityMigration.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC690A171A203D008D1775 /* HATableEntityMigration.m */; };
 		4BBC690E171A425B008D1775 /* HATableEntityMigrationTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC690D171A425B008D1775 /* HATableEntityMigrationTest.m */; };
+		4BBC6911171D063A008D1775 /* HATableEntityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC6910171D063A008D1775 /* HATableEntityTest.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +86,8 @@
 		4BBC690A171A203D008D1775 /* HATableEntityMigration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HATableEntityMigration.m; sourceTree = "<group>"; };
 		4BBC690C171A425B008D1775 /* HATableEntityMigrationTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HATableEntityMigrationTest.h; sourceTree = "<group>"; };
 		4BBC690D171A425B008D1775 /* HATableEntityMigrationTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HATableEntityMigrationTest.m; sourceTree = "<group>"; };
+		4BBC690F171D063A008D1775 /* HATableEntityTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HATableEntityTest.h; sourceTree = "<group>"; };
+		4BBC6910171D063A008D1775 /* HATableEntityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HATableEntityTest.m; sourceTree = "<group>"; };
 		B54938FEC7E9446ABA70AFA9 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA457FEDC144499897ED1DD6 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -186,6 +189,8 @@
 				4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */,
 				4BBC68FF1719FBBF008D1775 /* HABaseEntityTest.h */,
 				4BBC69001719FBBF008D1775 /* HABaseEntityTest.m */,
+				4BBC690F171D063A008D1775 /* HATableEntityTest.h */,
+				4BBC6910171D063A008D1775 /* HATableEntityTest.m */,
 				4BBC690C171A425B008D1775 /* HATableEntityMigrationTest.h */,
 				4BBC690D171A425B008D1775 /* HATableEntityMigrationTest.m */,
 				4BBC68F71719D93A008D1775 /* libPods.a */,
@@ -348,6 +353,7 @@
 				4BB63D541719D28600CF0A0C /* HAEntityManagerTest.m in Sources */,
 				4BBC69011719FBBF008D1775 /* HABaseEntityTest.m in Sources */,
 				4BBC690E171A425B008D1775 /* HATableEntityMigrationTest.m in Sources */,
+				4BBC6911171D063A008D1775 /* HATableEntityTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

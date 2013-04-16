@@ -64,8 +64,83 @@ static NSString* getPropertyType(objc_property_t property) {
 }
 
 
++ (int) HA_countParams:(NSString*)params
+{
+    int paramCount = 0;
+    NSUInteger len = [params length];
+
+    for (NSUInteger i = 0;i < len;i++) {
+        unichar c = [params characterAtIndex:i];
+        // '?' is used for parameter. ':' is named parameter like :name, :value, and so on.
+        if (c == '?' || c == ':') {
+            paramCount++;
+        }
+    }
+
+    return paramCount;
+}
+
 + (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params list:(va_list)args
 {
+    NSString* querySql = nil;
+    NSMutableArray* paramList = nil;
+
+    if (params) {
+        int paramCount = [self HA_countParams:params];
+
+        paramList = [NSMutableArray new];
+        NSMutableArray* optionalList = [NSMutableArray new];
+
+        id arg = va_arg(args, id);
+        while (arg) {
+            if (paramCount <= 0) {
+                [optionalList addObject:arg];
+            } else {
+                [paramList addObject:arg];
+                paramCount--;
+            }
+            arg = va_arg(args, id);
+        }
+
+        // optionalList contains order by or having
+
+        BOOL paramFound = FALSE;
+        for (id optParam in optionalList) {
+            if (paramFound) {
+                [paramList addObject:optParam];
+            } else if ([optParam isKindOfClass:[NSString class]]) {
+                NSString* mayHaving = (NSString*)optParam;
+                paramCount = [self HA_countParams:mayHaving];
+                if (paramCount > 0) {
+                    paramFound = TRUE;
+                }
+            }
+        }
+
+        // optionalList should have order by and having text only..
+        // having's parameters are added to paramList.
+        [optionalList removeObjectsInArray:paramList];
+
+        NSMutableString* buffer = [NSMutableString stringWithFormat:@"%@ WHERE %@", [self selectPrefix], params];
+        for (NSString* optParam in optionalList) {
+            [buffer appendFormat:@" %@ ", optParam];
+        }
+        querySql = buffer;
+    } else {
+        querySql = [self selectPrefix];
+    }
+
+    [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
+        FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
+        while ([results next]) {
+            id entity = [[self alloc] initWithResultSet:results];
+            [entity setResultSetToProperties:results];
+            handler(entity);
+        }
+        [results close];
+    }];
+
+    /*
     // Search sql parameter count.
     // TODO: Do we have more effective way to count characters ??
     int questionCount = 0;
@@ -92,7 +167,7 @@ static NSString* getPropertyType(objc_property_t property) {
             handler(entity);
         }
         [results close];
-    }];
+    }];*/
 }
 
 

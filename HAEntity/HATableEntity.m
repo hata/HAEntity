@@ -109,10 +109,6 @@ NSString* PRIMARY_KEY_COLUMN_NAME = @"rowid";
     return [propertyName isEqualToString:PRIMARY_KEY_PROP_NAME] ? PRIMARY_KEY_COLUMN_NAME : propertyName;
 }
 
-+ (NSString*) convertColumnToPropertyName:(NSString*) columnName
-{
-    return [columnName isEqualToString:PRIMARY_KEY_COLUMN_NAME] ? PRIMARY_KEY_PROP_NAME : columnName;
-}
 
 - (id) convertToObjectValue:(NSString*)propertyName propertyType:(NSString*)propertyType
 {

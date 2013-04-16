@@ -79,8 +79,8 @@ typedef void (^HABaseEntityEachHandler)(id entity);
 // find, where, order, having
 // join/inner/outer
 
-+ (NSArray*) where:(NSString*) params, ...;
-+ (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params, ...;
++ (NSArray*) where:(NSString*) params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params, ... NS_REQUIRES_NIL_TERMINATION;
 + (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params list:(va_list)args;
 
 
