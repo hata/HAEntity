@@ -194,40 +194,6 @@ static NSString* getPropertyType(objc_property_t property) {
     [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"ORDER BY" condition:order_by params:params list:args];
 }
 
-+ (NSArray*) group_by:(NSString *)group_by
-{
-    __block NSMutableArray* results = [NSMutableArray new];
-    
-    [self group_by:^(id entity, BOOL* stop){
-        [results addObject:entity];
-    } group_by:group_by];
-    
-    return results;
-}
-
-+ (void) group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by
-{
-    [self group_by:block group_by:group_by params:nil list:NULL];
-}
-
-+ (void) group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params, ...
-{
-    if (params) {
-        va_list args;
-        va_start(args,params);
-        va_end(args);
-        
-        [self group_by:block group_by:group_by params:params list:args];
-    } else {
-        [self group_by:block group_by:group_by params:nil list:NULL];
-    }
-}
-
-+ (void) group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args
-{
-    [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"GROUP BY" condition:group_by params:params list:args];
-}
-
 
 #pragma mark -
 #pragma mark private methods

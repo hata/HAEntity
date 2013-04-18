@@ -96,16 +96,6 @@ typedef void (^HABaseEntityEachHandler)(id entity, BOOL* stop);
 + (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
 + (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args;
 
-+ (NSArray*) group_by:(NSString*)group_by;
-+ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by;
-+ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args;
-
-//+ (NSArray*) having:(NSString*)having;
-//+ (void)     having:(HABaseEntityEachHandler)block having:(NSString*)having;
-//+ (void)     having:(HABaseEntityEachHandler)block having:(NSString*)having params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
-//+ (void)     having:(HABaseEntityEachHandler)block having:(NSString*)having params:(id)params list:(va_list)args;
-
 
 
 #pragma mark -

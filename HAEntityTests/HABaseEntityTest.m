@@ -1017,7 +1017,7 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
 }
 
-
+/*
 #pragma mark -
 #pragma mark group_by
 
@@ -1066,5 +1066,5 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(correctResult, entities.count, @"Verify all entities are returned.");
     STAssertEquals(3, sample.sumValue, @"Verify stored value.");
 }
-
+*/
 @end

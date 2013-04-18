@@ -25,7 +25,7 @@
 		4BBC68FE1719ECE7008D1775 /* HABaseEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC68FD1719ECE7008D1775 /* HABaseEntity.m */; };
 		4BBC69011719FBBF008D1775 /* HABaseEntityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC69001719FBBF008D1775 /* HABaseEntityTest.m */; };
 		4BBC69041719FDB1008D1775 /* HATableEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC69031719FDB1008D1775 /* HATableEntity.m */; };
-		4BBC69071719FDC4008D1775 /* HAViewEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC69061719FDC4008D1775 /* HAViewEntity.m */; };
+		4BBC69071719FDC4008D1775 /* HAReadEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC69061719FDC4008D1775 /* HAReadEntity.m */; };
 		4BBC690B171A203D008D1775 /* HATableEntityMigration.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC690A171A203D008D1775 /* HATableEntityMigration.m */; };
 		4BBC690E171A425B008D1775 /* HATableEntityMigrationTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC690D171A425B008D1775 /* HATableEntityMigrationTest.m */; };
 		4BBC6911171D063A008D1775 /* HATableEntityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BBC6910171D063A008D1775 /* HATableEntityTest.m */; };
@@ -79,8 +79,8 @@
 		4BBC69001719FBBF008D1775 /* HABaseEntityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HABaseEntityTest.m; sourceTree = "<group>"; };
 		4BBC69021719FDB1008D1775 /* HATableEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HATableEntity.h; sourceTree = "<group>"; };
 		4BBC69031719FDB1008D1775 /* HATableEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HATableEntity.m; sourceTree = "<group>"; };
-		4BBC69051719FDC4008D1775 /* HAViewEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAViewEntity.h; sourceTree = "<group>"; };
-		4BBC69061719FDC4008D1775 /* HAViewEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAViewEntity.m; sourceTree = "<group>"; };
+		4BBC69051719FDC4008D1775 /* HAReadEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAReadEntity.h; sourceTree = "<group>"; };
+		4BBC69061719FDC4008D1775 /* HAReadEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAReadEntity.m; sourceTree = "<group>"; };
 		4BBC6908171A1EFB008D1775 /* HAEntityMigrating.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityMigrating.h; sourceTree = "<group>"; };
 		4BBC6909171A203D008D1775 /* HATableEntityMigration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HATableEntityMigration.h; sourceTree = "<group>"; };
 		4BBC690A171A203D008D1775 /* HATableEntityMigration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HATableEntityMigration.m; sourceTree = "<group>"; };
@@ -162,8 +162,8 @@
 				4BBC68FD1719ECE7008D1775 /* HABaseEntity.m */,
 				4BBC69021719FDB1008D1775 /* HATableEntity.h */,
 				4BBC69031719FDB1008D1775 /* HATableEntity.m */,
-				4BBC69051719FDC4008D1775 /* HAViewEntity.h */,
-				4BBC69061719FDC4008D1775 /* HAViewEntity.m */,
+				4BBC69051719FDC4008D1775 /* HAReadEntity.h */,
+				4BBC69061719FDC4008D1775 /* HAReadEntity.m */,
 				4BBC6908171A1EFB008D1775 /* HAEntityMigrating.h */,
 				4BBC6909171A203D008D1775 /* HATableEntityMigration.h */,
 				4BBC690A171A203D008D1775 /* HATableEntityMigration.m */,
@@ -340,7 +340,7 @@
 				4BB63D511719D24300CF0A0C /* HAEntityManager.m in Sources */,
 				4BBC68FE1719ECE7008D1775 /* HABaseEntity.m in Sources */,
 				4BBC69041719FDB1008D1775 /* HATableEntity.m in Sources */,
-				4BBC69071719FDC4008D1775 /* HAViewEntity.m in Sources */,
+				4BBC69071719FDC4008D1775 /* HAReadEntity.m in Sources */,
 				4BBC690B171A203D008D1775 /* HATableEntityMigration.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
