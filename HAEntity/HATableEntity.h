@@ -20,9 +20,7 @@
 
 + (NSString*) tableName;
 
-+ (NSString*) convertPropertyToColumnName:(NSString*) propertyName;
-
-+ (id) find:(sqlite_int64)rowid;
++ (id) find_by_rowid:(sqlite_int64)rowid;
 
 - (BOOL) save;
 - (BOOL) remove;

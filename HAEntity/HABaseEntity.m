@@ -12,6 +12,7 @@
 #import "HAEntityManager.h"
 #import "HABaseEntity.h"
 
+#define DEBUG_SHOW_EXECUTE_QUERY_SQL
 
 static NSString* getPropertyType(objc_property_t property) {
     const char *attributes = property_getAttributes(property);
@@ -37,31 +38,199 @@ static NSString* getPropertyType(objc_property_t property) {
 @implementation HABaseEntity
 
 
-+ (NSArray*) where:(NSString*) params, ...
+#pragma mark -
+#pragma mark query methods
+
++ (id) find_first
 {
-    va_list args;
-    va_start(args,params);
-    va_end(args);
+    return [self find_first:nil params:nil list:NULL];
+}
+
++ (id) find_first:(NSString*)where params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        return [self find_first:where params:params list:args];
+    } else {
+        return [self find_first:where params:nil list:NULL];
+    }
+}
+
++ (id) find_first:(NSString*)where params:(id)params list:(va_list)args
+{
+    if (!params || !args) {
+        // TODO: This should be able to set limit 1...
+        NSArray* results = [self where:where];
+        return results != nil && results.count > 0 ? [results objectAtIndex:0] : nil;
+    }
     
+    // TODO: This should be able to set limit option..
+    __block id result = nil;
+    [self where:^(id entity, BOOL* stop){
+        result = entity;
+        *stop = TRUE;
+    } where:where params:params list:args];
+    
+    return result;
+}
+
++ (NSArray*) select_all
+{
+    return [self where:nil];
+}
+
++ (void) select_all:(HABaseEntityEachHandler)block
+{
+    [self where:^(id entity, BOOL* stop) {
+        block(entity, stop);
+    } where:nil];
+}
+
+
++ (NSArray*) select:(NSString*)select
+{
     __block NSMutableArray* results = [NSMutableArray new];
-    [self where_each:^(id entity){
+    
+    [self select:^(id entity, BOOL* stop){
         [results addObject:entity];
-    } params:params list:args];
+    } select:select];
     
     return results;
 }
 
-+ (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params, ...
++ (void) select:(HABaseEntityEachHandler)block select:(NSString*)select
 {
-    va_list args;
-    va_start(args,params);
-    va_end(args);
-    
-    [self where_each:^(id entity) {
-        handler(entity);
-    } params:params list:args];
-    
+    [self select:block select:select params:nil list:NULL];
 }
+
++ (void) select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        [self select:block select:select params:params list:args];
+    } else {
+        [self select:block select:select params:nil list:NULL];
+    }
+}
+
++ (void) select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args
+{
+    [self HA_executeQuery:block selectPrefix:@"" sqlPrefix:@"SELECT" condition:select params:params list:args];
+}
+
+
++ (NSArray*) where:(NSString*)where
+{
+    __block NSMutableArray* results = [NSMutableArray new];
+
+    [self where:^(id entity, BOOL* stop){
+        [results addObject:entity];
+    } where:where];
+    
+    return results;
+}
+
++ (void) where:(HABaseEntityEachHandler)block where:(NSString*)where
+{
+    [self where:block where:where params:nil list:NULL];
+}
+
++ (void) where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+
+        [self where:block where:where params:params list:args];
+    } else {
+        [self where:block where:where params:nil list:NULL];
+    }
+}
+
++ (void) where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params list:(va_list)args
+{
+    [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"WHERE" condition:where params:params list:args];
+}
+
+
++ (NSArray*) order_by:(NSString*)order_by
+{
+    __block NSMutableArray* results = [NSMutableArray new];
+    
+    [self order_by:^(id entity, BOOL* stop){
+        [results addObject:entity];
+    } order_by:order_by];
+    
+    return results;
+}
+
++ (void) order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by
+{
+    [self order_by:block order_by:order_by params:nil list:NULL];
+}
+
++ (void) order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        [self order_by:block order_by:order_by params:params list:args];
+    } else {
+        [self order_by:block order_by:order_by params:nil list:NULL];
+    }
+}
+
++ (void) order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args
+{
+    [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"ORDER BY" condition:order_by params:params list:args];
+}
+
++ (NSArray*) group_by:(NSString *)group_by
+{
+    __block NSMutableArray* results = [NSMutableArray new];
+    
+    [self group_by:^(id entity, BOOL* stop){
+        [results addObject:entity];
+    } group_by:group_by];
+    
+    return results;
+}
+
++ (void) group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by
+{
+    [self group_by:block group_by:group_by params:nil list:NULL];
+}
+
++ (void) group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        [self group_by:block group_by:group_by params:params list:args];
+    } else {
+        [self group_by:block group_by:group_by params:nil list:NULL];
+    }
+}
+
++ (void) group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args
+{
+    [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"GROUP BY" condition:group_by params:params list:args];
+}
+
+
+#pragma mark -
+#pragma mark private methods
 
 
 + (int) HA_countParams:(NSString*)params
@@ -80,13 +249,76 @@ static NSString* getPropertyType(objc_property_t property) {
     return paramCount;
 }
 
-+ (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params list:(va_list)args
++ (NSArray*) HA_listToArray:(NSString*)condition firstParam:(id)firstParam list:(va_list)args
+{
+    NSMutableArray* paramList = [NSMutableArray new];
+    int paramCount = [self HA_countParams:condition];
+    
+    if (firstParam) {
+        [paramList addObject:firstParam];
+        paramCount--;
+    }
+    
+    if (!args) {
+        return paramList;
+    }
+    
+    id arg = va_arg(args, id);
+    while (arg) {
+        [paramList addObject:arg];
+        paramCount--;
+        arg = va_arg(args, id);
+    }
+    
+    if (!paramCount) {
+        LOG(@"WARNING: parameter count is incorrect. where:%@ additional params are %d params.", condition, paramCount);
+    }
+    
+    return paramList;
+}
+
++ (void) HA_executeQuery:(HABaseEntityEachHandler)block selectPrefix:(NSString*)selectPrefix sqlPrefix:(NSString*)sqlPrefix condition:(NSString*)condition params:(id)params list:(va_list)args
+{
+    NSString* querySql = nil;
+    NSArray* paramList = nil;
+    
+    if (condition) {
+        paramList = [self HA_listToArray:condition firstParam:params list:args];
+        querySql = [NSMutableString stringWithFormat:@"%@ %@ %@", selectPrefix, sqlPrefix, condition];
+    } else {
+        querySql = [self selectPrefix];
+    }
+
+#ifdef DEBUG_SHOW_EXECUTE_QUERY_SQL
+    LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@'", querySql);
+#endif
+    
+    [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
+        BOOL stop = FALSE;
+        FMResultSet* results = paramList ? [db executeQuery:querySql withArgumentsInArray:paramList] : [db executeQuery:querySql];
+        while ([results next]) {
+            id entity = [[self alloc] initWithResultSet:results];
+            [entity setResultSetToProperties:results];
+            block(entity, &stop);
+            if (stop) {
+                break;
+            }
+        }
+        [results close];
+    }];
+}
+
+
+#pragma mark -
+#pragma mark find
+
++ (void) find:(HABaseEntityEachHandler)block where:(NSString*)where list:(va_list)args
 {
     NSString* querySql = nil;
     NSMutableArray* paramList = nil;
 
-    if (params) {
-        int paramCount = [self HA_countParams:params];
+    if (where) {
+        int paramCount = [self HA_countParams:where];
 
         paramList = [NSMutableArray new];
         NSMutableArray* optionalList = [NSMutableArray new];
@@ -121,7 +353,7 @@ static NSString* getPropertyType(objc_property_t property) {
         // having's parameters are added to paramList.
         [optionalList removeObjectsInArray:paramList];
 
-        NSMutableString* buffer = [NSMutableString stringWithFormat:@"%@ WHERE %@", [self selectPrefix], params];
+        NSMutableString* buffer = [NSMutableString stringWithFormat:@"%@ WHERE %@", [self selectPrefix], where];
         for (NSString* optParam in optionalList) {
             [buffer appendFormat:@" %@ ", optParam];
         }
@@ -131,43 +363,18 @@ static NSString* getPropertyType(objc_property_t property) {
     }
 
     [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
+        BOOL stop = FALSE;
         FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
         while ([results next]) {
             id entity = [[self alloc] initWithResultSet:results];
             [entity setResultSetToProperties:results];
-            handler(entity);
+            block(entity, &stop);
+            if (stop) {
+                break;
+            }
         }
         [results close];
     }];
-
-    /*
-    // Search sql parameter count.
-    // TODO: Do we have more effective way to count characters ??
-    int questionCount = 0;
-    NSUInteger len = [params length];
-    for (NSUInteger i = 0;i < len;i++) {
-        if ([params characterAtIndex:i] == '?') {
-            questionCount++;
-        }
-    }
-    
-    // Get parameters as an array to pass FMDatabase
-    NSMutableArray* paramList = [NSMutableArray new];
-    
-    for (int i = 0;i < questionCount;i++) {
-        [paramList addObject:va_arg(args, id)];
-    }
-    [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
-        NSString* querySql = (nil != params) ?
-        [NSString stringWithFormat:@"%@ WHERE %@", [self selectPrefix], params] : [self selectPrefix];
-        FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
-        while ([results next]) {
-            id entity = [[self alloc] initWithResultSet:results];
-            [entity setResultSetToProperties:results];
-            handler(entity);
-        }
-        [results close];
-    }];*/
 }
 
 

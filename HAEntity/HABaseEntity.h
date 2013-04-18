@@ -11,7 +11,7 @@
 #import "FMDatabase.h"
 
 
-typedef void (^HABaseEntityEachHandler)(id entity);
+typedef void (^HABaseEntityEachHandler)(id entity, BOOL* stop);
 
 /**
  * The base class to access FMDatabase.
@@ -73,15 +73,39 @@ typedef void (^HABaseEntityEachHandler)(id entity);
 
 //+ (NSString*) convertColumnToPropertyName:(NSString*) columnName;
 
-// TODO:
-// find_all, find_first,
-// find_by_pk, find_by_sql
-// find, where, order, having
-// join/inner/outer
 
-+ (NSArray*) where:(NSString*) params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void) where_each:(HABaseEntityEachHandler)handler params:(NSString*)params list:(va_list)args;
++ (id)       find_first;
++ (id)       find_first:(NSString*)where params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (id)       find_first:(NSString*)where params:(id)params list:(va_list)args;
+
++ (NSArray*) select_all;
++ (void)     select_all:(HABaseEntityEachHandler)block;
+
++ (NSArray*) select:(NSString*)select;
++ (void)     select:(HABaseEntityEachHandler)block select:(NSString*)select;
++ (void)     select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args;
+
++ (NSArray*) where:(NSString*)where;
++ (void)     where:(HABaseEntityEachHandler)block where:(NSString*)where;
++ (void)     where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params list:(va_list)args;
+
++ (NSArray*) order_by:(NSString*)order_by;
++ (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by;
++ (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args;
+
++ (NSArray*) group_by:(NSString*)group_by;
++ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by;
++ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args;
+
+//+ (NSArray*) having:(NSString*)having;
+//+ (void)     having:(HABaseEntityEachHandler)block having:(NSString*)having;
+//+ (void)     having:(HABaseEntityEachHandler)block having:(NSString*)having params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
+//+ (void)     having:(HABaseEntityEachHandler)block having:(NSString*)having params:(id)params list:(va_list)args;
+
 
 
 #pragma mark -
