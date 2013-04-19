@@ -69,7 +69,7 @@ static NSString* getPropertyType(objc_property_t property) {
     
     // TODO: This should be able to set limit option..
     __block id result = nil;
-    [self where:^(id entity, BOOL* stop){
+    [self where_each:^(id entity, BOOL* stop){
         result = entity;
         *stop = TRUE;
     } where:where params:params list:args];
@@ -84,7 +84,7 @@ static NSString* getPropertyType(objc_property_t property) {
 
 + (void) select_all:(HABaseEntityEachHandler)block
 {
-    [self where:^(id entity, BOOL* stop) {
+    [self where_each:^(id entity, BOOL* stop) {
         block(entity, stop);
     } where:nil];
 }
@@ -92,34 +92,52 @@ static NSString* getPropertyType(objc_property_t property) {
 
 + (NSArray*) select:(NSString*)select
 {
-    __block NSMutableArray* results = [NSMutableArray new];
-    
-    [self select:^(id entity, BOOL* stop){
-        [results addObject:entity];
-    } select:select];
-    
-    return results;
+    return [self select:select params:nil list:NULL];
 }
 
-+ (void) select:(HABaseEntityEachHandler)block select:(NSString*)select
-{
-    [self select:block select:select params:nil list:NULL];
-}
-
-+ (void) select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params, ...
++ (NSArray*) select:(NSString*)select params:(id)params, ...
 {
     if (params) {
         va_list args;
         va_start(args,params);
         va_end(args);
         
-        [self select:block select:select params:params list:args];
+        return [self select:select params:params list:args];
     } else {
-        [self select:block select:select params:nil list:NULL];
+        return [self select:select params:nil list:NULL];
     }
 }
 
-+ (void) select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args
++ (NSArray*) select:(NSString*)select params:(id)params list:(va_list)args
+{
+    __block NSMutableArray* results = [NSMutableArray new];
+    
+    [self select_each:^(id entity, BOOL* stop){
+        [results addObject:entity];
+    } select:select params:params list:args];
+    
+    return results;
+}
+
++ (void) select_each:(HABaseEntityEachHandler)block select:(NSString*)select
+{
+    [self select_each:block select:select params:nil list:NULL];
+}
+
++ (void) select_each:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        [self select_each:block select:select params:params list:args];
+    } else {
+        [self select_each:block select:select params:nil list:NULL];
+    }
+}
+
++ (void) select_each:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args
 {
     [self HA_executeQuery:block selectPrefix:@"" sqlPrefix:@"SELECT" condition:select params:params list:args];
 }
@@ -127,34 +145,50 @@ static NSString* getPropertyType(objc_property_t property) {
 
 + (NSArray*) where:(NSString*)where
 {
-    __block NSMutableArray* results = [NSMutableArray new];
-
-    [self where:^(id entity, BOOL* stop){
-        [results addObject:entity];
-    } where:where];
-    
-    return results;
+    return [self where:where params:nil list:NULL];
 }
 
-+ (void) where:(HABaseEntityEachHandler)block where:(NSString*)where
++ (NSArray*) where:(NSString*)where params:(id)params, ...
 {
-    [self where:block where:where params:nil list:NULL];
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        return [self where:where params:params list:args];
+    } else {
+        return [self where:where params:nil list:NULL];
+    }
 }
 
-+ (void) where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params, ...
++ (NSArray*) where:(NSString*)where params:(id)params list:(va_list)args
+{
+    __block NSMutableArray* result = [NSMutableArray new];
+    [self where_each:^(id entity, BOOL *stop) {
+        [result addObject:entity];
+    } where:where params:params list:args];
+    return result;
+}
+
++ (void) where_each:(HABaseEntityEachHandler)block where:(NSString*)where
+{
+    [self where_each:block where:where params:nil list:NULL];
+}
+
++ (void) where_each:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params, ...
 {
     if (params) {
         va_list args;
         va_start(args,params);
         va_end(args);
 
-        [self where:block where:where params:params list:args];
+        [self where_each:block where:where params:params list:args];
     } else {
-        [self where:block where:where params:nil list:NULL];
+        [self where_each:block where:where params:nil list:NULL];
     }
 }
 
-+ (void) where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params list:(va_list)args
++ (void) where_each:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params list:(va_list)args
 {
     [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"WHERE" condition:where params:params list:args];
 }
@@ -162,34 +196,52 @@ static NSString* getPropertyType(objc_property_t property) {
 
 + (NSArray*) order_by:(NSString*)order_by
 {
-    __block NSMutableArray* results = [NSMutableArray new];
-    
-    [self order_by:^(id entity, BOOL* stop){
-        [results addObject:entity];
-    } order_by:order_by];
-    
-    return results;
+    return [self order_by:order_by params:nil list:NULL];
 }
 
-+ (void) order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by
-{
-    [self order_by:block order_by:order_by params:nil list:NULL];
-}
-
-+ (void) order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ...
++ (NSArray*) order_by:(NSString*)order_by params:(id)params, ...
 {
     if (params) {
         va_list args;
         va_start(args,params);
         va_end(args);
         
-        [self order_by:block order_by:order_by params:params list:args];
+        return [self order_by:order_by params:params list:args];
     } else {
-        [self order_by:block order_by:order_by params:nil list:NULL];
+        return [self order_by:order_by params:nil list:NULL];
     }
 }
 
-+ (void) order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args
++ (NSArray*) order_by:(NSString*)order_by params:(id)params list:(va_list)args
+{
+    __block NSMutableArray* results = [NSMutableArray new];
+    
+    [self order_by_each:^(id entity, BOOL* stop){
+        [results addObject:entity];
+    } order_by:order_by params:params list:args];
+    
+    return results;
+}
+
++ (void) order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by
+{
+    [self order_by_each:block order_by:order_by params:nil list:NULL];
+}
+
++ (void) order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ...
+{
+    if (params) {
+        va_list args;
+        va_start(args,params);
+        va_end(args);
+        
+        [self order_by_each:block order_by:order_by params:params list:args];
+    } else {
+        [self order_by_each:block order_by:order_by params:nil list:NULL];
+    }
+}
+
++ (void) order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args
 {
     [self HA_executeQuery:block selectPrefix:[self selectPrefix] sqlPrefix:@"ORDER BY" condition:order_by params:params list:args];
 }
@@ -236,7 +288,7 @@ static NSString* getPropertyType(objc_property_t property) {
         arg = va_arg(args, id);
     }
     
-    if (!paramCount) {
+    if (paramCount) {
         LOG(@"WARNING: parameter count is incorrect. where:%@ additional params are %d params.", condition, paramCount);
     }
     

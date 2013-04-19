@@ -82,19 +82,25 @@ typedef void (^HABaseEntityEachHandler)(id entity, BOOL* stop);
 + (void)     select_all:(HABaseEntityEachHandler)block;
 
 + (NSArray*) select:(NSString*)select;
-+ (void)     select:(HABaseEntityEachHandler)block select:(NSString*)select;
-+ (void)     select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void)     select:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args;
++ (NSArray*) select:(NSString*)select params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (NSArray*) select:(NSString*)select params:(id)params list:(va_list)args;
++ (void)     select_each:(HABaseEntityEachHandler)block select:(NSString*)select;
++ (void)     select_each:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     select_each:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args;
 
 + (NSArray*) where:(NSString*)where;
-+ (void)     where:(HABaseEntityEachHandler)block where:(NSString*)where;
-+ (void)     where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void)     where:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params list:(va_list)args;
++ (NSArray*) where:(NSString*)where params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (NSArray*) where:(NSString*)where params:(id)params list:(va_list)args;
++ (void)     where_each:(HABaseEntityEachHandler)block where:(NSString*)where;
++ (void)     where_each:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     where_each:(HABaseEntityEachHandler)block where:(NSString*)where params:(id)params list:(va_list)args;
 
 + (NSArray*) order_by:(NSString*)order_by;
-+ (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by;
-+ (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void)     order_by:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args;
++ (NSArray*) order_by:(NSString*)order_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (NSArray*) order_by:(NSString*)order_by params:(id)params list:(va_list)args;
++ (void)     order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by;
++ (void)     order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args;
 
 
 

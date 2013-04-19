@@ -833,7 +833,7 @@ static BOOL unprepareIsCalled = FALSE;
     NSUInteger correctResult = 1;
     
     NSMutableArray* entities = [NSMutableArray new];
-    [HATestSample3 select:^(id entity, BOOL *stop) {
+    [HATestSample3 select_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } select:@"numValue, stringValue FROM test_table3 WHERE numValue = ?" params:[NSNumber numberWithInt:1], nil];
     STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
@@ -890,7 +890,7 @@ static BOOL unprepareIsCalled = FALSE;
     NSUInteger correctResult = 1;
     
     NSMutableArray* entities = [NSMutableArray new];
-    [HATestSample3 where:^(id entity, BOOL *stop) {
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } where:@"numValue = ?" params:[NSNumber numberWithInt:1], nil];
     STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
@@ -907,7 +907,7 @@ static BOOL unprepareIsCalled = FALSE;
 
     NSUInteger correctResult = 2;
     NSMutableArray* entities = [NSMutableArray new];
-    [HATestSample3 where:^(id entity, BOOL *stop) {
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } where:@"stringValue = ? ORDER BY numValue" params:@"bar", nil];
     STAssertEquals(correctResult, entities.count, @"Verify 'bar' entities are returned.");
@@ -916,7 +916,7 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(3, [[entities objectAtIndex:1] numValue], @"Verify order by.");
 
     entities = [NSMutableArray new];
-    [HATestSample3 where:^(id entity, BOOL *stop) {
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } where:@"stringValue = ? ORDER BY numValue DESC" params:@"bar", nil];
     STAssertEquals(3, [[entities objectAtIndex:0] numValue], @"Verify order by.");
@@ -931,7 +931,7 @@ static BOOL unprepareIsCalled = FALSE;
     
     NSUInteger correctResult = 2;
     NSMutableArray* entities = [NSMutableArray new];
-    [HATestSample3 where:^(id entity, BOOL *stop) {
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } where:@"stringValue = ? ORDER BY numValue" params:@"bar", nil];
     STAssertEquals(correctResult, entities.count, @"Verify 'bar' entities are returned.");
@@ -940,7 +940,7 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(3, [[entities objectAtIndex:1] numValue], @"Verify order by.");
 
     entities = [NSMutableArray new];
-    [HATestSample3 where:^(id entity, BOOL *stop) {
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } where:@"stringValue = ? ORDER BY numValue DESC" params:@"bar", nil];
     STAssertEquals(3, [[entities objectAtIndex:0] numValue], @"Verify order by.");
@@ -1001,7 +1001,7 @@ static BOOL unprepareIsCalled = FALSE;
     NSUInteger correctResult = 1;
     
     NSMutableArray* entities = [NSMutableArray new];
-    [HATestSample3 order_by:^(id entity, BOOL *stop) {
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } order_by:@"numValue limit ?" params:[NSNumber numberWithInt:1], nil];
     STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
@@ -1009,7 +1009,7 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
 
     entities = [NSMutableArray new];
-    [HATestSample3 order_by:^(id entity, BOOL *stop) {
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } order_by:@"numValue desc limit ?" params:[NSNumber numberWithInt:1], nil];
     STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");

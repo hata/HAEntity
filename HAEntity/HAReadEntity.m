@@ -73,7 +73,7 @@
     // TODO: This should be changed because this is group by and column may not have the correct function.
     
     NSString* fmt = [NSString stringWithFormat:@"%@ FROM %@ GROUP BY %@", columns, [self tableName], group_by];
-    [self select:block select:fmt params:params list:args];
+    [self select_each:block select:fmt params:params list:args];
 }
 
 @end
