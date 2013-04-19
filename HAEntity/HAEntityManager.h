@@ -140,11 +140,21 @@
 - (void) up:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
 
 /**
+ * This is the same as up:INT_MAX migratings:migratings, ...
+ */
+- (void) upToHighestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+/**
  * migrate to lower version.
  * @param toVersion is the lowest version which is included.
  * @param migratings are called to migrate.
  */
 - (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+/**
+ * This is the same as down:INT_MIN migratings:migratings, ...
+ */
+- (void) downToLowestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
 
 
 @end

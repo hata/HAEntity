@@ -15,7 +15,7 @@ const static NSString* THREAD_LOCAL_KEY_HAENTITY_MANAGER_IN_TRANS_FMDATABASE = @
 
 static NSString* SYNC_OBJECT = @"HAEntityManager::SYNC_OBJECT";
 static HAEntityManager* _defaultInstance = nil;
-static NSMutableDictionary* _managerInstances = nil;
+static NSMutableArray* _managerInstances = nil;
 
 
 + (HAEntityManager*) instance
@@ -30,17 +30,22 @@ static NSMutableDictionary* _managerInstances = nil;
         if (nil == dbFilePath) {
             return _defaultInstance;
         } else {
-            HAEntityManager* manager = [_managerInstances objectForKey:dbFilePath];
-            if ((nil == manager) || [manager closed]) {
-                manager = [[HAEntityManager alloc] initWithFilePath:dbFilePath];
-                if (nil == _defaultInstance) {
-                    _defaultInstance = manager;
-                }
-                if (nil == _managerInstances) {
-                    _managerInstances = [NSMutableDictionary new];
-                }
-                [_managerInstances setObject:manager forKey:dbFilePath];
+            if (nil == _managerInstances) {
+                _managerInstances = [NSMutableArray new];
             }
+
+            for (HAEntityManager* manager in _managerInstances) {
+                if ([[manager HA_dbFilePath] isEqualToString:dbFilePath]) {
+                    return manager;
+                }
+            }
+            
+            HAEntityManager* manager = [[HAEntityManager alloc] initWithFilePath:dbFilePath];
+            if (nil == _defaultInstance) {
+                _defaultInstance = manager;
+            }
+            [_managerInstances addObject:manager];
+
             return manager;
         }
     }
@@ -56,8 +61,11 @@ static NSMutableDictionary* _managerInstances = nil;
             return _defaultInstance;
         }
 
+        // Search entity using reverse order because if I ran test, the test class
+        // usually use EntityManager temporarily.
         __block HAEntityManager* entityManager = _defaultInstance;
-        [_managerInstances enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [_managerInstances enumerateObjectsWithOptions:NSEnumerationReverse
+                                            usingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
             HAEntityManager* manager = obj;
             if ([manager isAddedEntityClass:entityClass]) {
                 entityManager = manager;
@@ -67,6 +75,13 @@ static NSMutableDictionary* _managerInstances = nil;
         
         return entityManager;
     }
+}
+
+
+
+- (NSString*) HA_dbFilePath
+{
+    return _dbFilePath;
 }
 
 
@@ -91,7 +106,7 @@ static NSMutableDictionary* _managerInstances = nil;
         }
 
         if (nil != _dbFilePath) {
-            [_managerInstances removeObjectForKey:_dbFilePath];
+            [_managerInstances removeObject:self];
         }
     }
 }
@@ -248,10 +263,12 @@ static NSMutableDictionary* _managerInstances = nil;
 
 
     [migs addObject:migrating];
-    migrating = va_arg(args, id<HAEntityMigrating>);
-    while (migrating) {
-        [migs addObject:migrating];
+    if (args) {
         migrating = va_arg(args, id<HAEntityMigrating>);
+        while (migrating) {
+            [migs addObject:migrating];
+            migrating = va_arg(args, id<HAEntityMigrating>);
+        }
     }
     
     NSSortDescriptor* sorter = [[NSSortDescriptor alloc] initWithKey:@"version" ascending:up];
@@ -300,6 +317,20 @@ static NSMutableDictionary* _managerInstances = nil;
     [self HA_migrate:TRUE toVersion:toVersion migrating:migratings list:args];
 }
 
+
+- (void) upToHighestVersion:(id<HAEntityMigrating>) migratings, ...
+{
+    if (!migratings) {
+        return;
+    }
+    
+    va_list args;
+    va_start(args,migratings);
+    va_end(args);
+    
+    [self HA_migrate:TRUE toVersion:INT_MAX migrating:migratings list:args];
+}
+
 - (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ...
 {
     if (!migratings) {
@@ -313,5 +344,17 @@ static NSMutableDictionary* _managerInstances = nil;
     [self HA_migrate:FALSE toVersion:toVersion migrating:migratings list:args];
 }
 
+- (void) downToLowestVersion:(id<HAEntityMigrating>) migratings, ...
+{
+    if (!migratings) {
+        return;
+    }
+    
+    va_list args;
+    va_start(args,migratings);
+    va_end(args);
+    
+    [self HA_migrate:FALSE toVersion:INT_MIN migrating:migratings list:args];
+}
 
 @end

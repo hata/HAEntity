@@ -84,5 +84,4 @@
     STAssertNil(rset, @"Verify table is dropped.");
 }
 
-
 @end

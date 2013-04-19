@@ -17,4 +17,7 @@
 
 - (id) initWithVersion:(NSInteger)version entityClasses:(Class)entityClass, ... NS_REQUIRES_NIL_TERMINATION;
 
+- (void) up:(FMDatabase*)db;
+- (void) down:(FMDatabase*)db;
+
 @end

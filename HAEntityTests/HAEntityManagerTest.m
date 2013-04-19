@@ -475,4 +475,50 @@
     STAssertEquals(1, [migration1 downCount], @"Verify down is called.");
 }
 
+- (void)testUpToHighestVersion
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager upToHighestVersion:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(1, migration1.upCount, @"Verify migration1.up is called");
+    STAssertEquals(1, migration2.upCount, @"Verify migration2.up is called");
+    STAssertEquals(1, migration3.upCount, @"Verify migration3.up is called");
+}
+
+
+- (void)testDownLowestVersion
+{
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager downToLowestVersion:migration1, migration2, migration3, nil];
+    
+    STAssertEquals(1, migration1.downCount, @"Verify migration1.down is not called");
+    STAssertEquals(1, migration2.downCount, @"Verify migration2.down is not called");
+    STAssertEquals(1, migration3.downCount, @"Verify migration3.down is not called");
+}
+
+
+- (void) testEntitySearchOrder
+{
+    [HAEntityManager instanceForPath:dbFilePath];
+    [[HAEntityManager instance] addEntityClass:[self class]];
+    
+    [HAEntityManager instanceForPath:dbFilePath2];
+    [[HAEntityManager instanceForPath:dbFilePath2] addEntityClass:[self class]];
+
+    STAssertEqualObjects([HAEntityManager instanceForPath:dbFilePath2],
+                         [HAEntityManager instanceForEntity:[self class]],
+                         @"Verify latest added entity's instance should be returned.");
+}
+
+
+
+
 @end
