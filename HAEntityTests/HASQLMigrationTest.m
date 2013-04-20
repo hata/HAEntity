@@ -17,7 +17,7 @@
     [super setUp];
     // Set-up code here.
     
-    dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HAReadEntityTest.sqlite"];
+    dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HASQLMigrationTest.sqlite"];
     [HAEntityManager instanceForPath:dbFilePath];
 }
 
