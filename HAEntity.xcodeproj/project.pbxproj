@@ -9,14 +9,13 @@
 /* Begin PBXBuildFile section */
 		39235DC1883647BD857523D6 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B54938FEC7E9446ABA70AFA9 /* libPods.a */; };
 		4B291F431719CEC500226D8C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F421719CEC500226D8C /* Foundation.framework */; };
-		4B291F481719CEC500226D8C /* HAEntity.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4B291F471719CEC500226D8C /* HAEntity.h */; };
-		4B291F4A1719CEC500226D8C /* HAEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B291F491719CEC500226D8C /* HAEntity.m */; };
 		4B291F521719CEC500226D8C /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F511719CEC500226D8C /* SenTestingKit.framework */; };
 		4B291F541719CEC500226D8C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F531719CEC500226D8C /* UIKit.framework */; };
 		4B291F551719CEC500226D8C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F421719CEC500226D8C /* Foundation.framework */; };
 		4B291F581719CEC500226D8C /* libHAEntity.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F3F1719CEC500226D8C /* libHAEntity.a */; };
 		4B291F5E1719CEC500226D8C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4B291F5C1719CEC500226D8C /* InfoPlist.strings */; };
-		4B291F611719CEC500226D8C /* HAEntityTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B291F601719CEC500226D8C /* HAEntityTests.m */; };
+		4B41D23317223603006248DA /* HAReadEntityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23217223603006248DA /* HAReadEntityTest.m */; };
+		4B41D23617225E63006248DA /* HASQLMigration.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23517225E63006248DA /* HASQLMigration.m */; };
 		4BB63D511719D24300CF0A0C /* HAEntityManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB63D501719D24300CF0A0C /* HAEntityManager.m */; };
 		4BB63D541719D28600CF0A0C /* HAEntityManagerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */; };
 		4BBC68F81719D93A008D1775 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BBC68F71719D93A008D1775 /* libPods.a */; };
@@ -48,7 +47,6 @@
 			dstPath = "include/${PRODUCT_NAME}";
 			dstSubfolderSpec = 16;
 			files = (
-				4B291F481719CEC500226D8C /* HAEntity.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,15 +56,15 @@
 		4B291F3F1719CEC500226D8C /* libHAEntity.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHAEntity.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B291F421719CEC500226D8C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		4B291F461719CEC500226D8C /* HAEntity-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "HAEntity-Prefix.pch"; sourceTree = "<group>"; };
-		4B291F471719CEC500226D8C /* HAEntity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HAEntity.h; sourceTree = "<group>"; };
-		4B291F491719CEC500226D8C /* HAEntity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HAEntity.m; sourceTree = "<group>"; };
 		4B291F501719CEC500226D8C /* HAEntityTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HAEntityTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B291F511719CEC500226D8C /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		4B291F531719CEC500226D8C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		4B291F5B1719CEC500226D8C /* HAEntityTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HAEntityTests-Info.plist"; sourceTree = "<group>"; };
 		4B291F5D1719CEC500226D8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		4B291F5F1719CEC500226D8C /* HAEntityTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HAEntityTests.h; sourceTree = "<group>"; };
-		4B291F601719CEC500226D8C /* HAEntityTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HAEntityTests.m; sourceTree = "<group>"; };
+		4B41D23117223603006248DA /* HAReadEntityTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAReadEntityTest.h; sourceTree = "<group>"; };
+		4B41D23217223603006248DA /* HAReadEntityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAReadEntityTest.m; sourceTree = "<group>"; };
+		4B41D23417225E63006248DA /* HASQLMigration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HASQLMigration.h; sourceTree = "<group>"; };
+		4B41D23517225E63006248DA /* HASQLMigration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HASQLMigration.m; sourceTree = "<group>"; };
 		4BB63D4F1719D24300CF0A0C /* HAEntityManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityManager.h; sourceTree = "<group>"; };
 		4BB63D501719D24300CF0A0C /* HAEntityManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityManager.m; sourceTree = "<group>"; };
 		4BB63D521719D28600CF0A0C /* HAEntityManagerTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityManagerTest.h; sourceTree = "<group>"; };
@@ -154,8 +152,6 @@
 		4B291F441719CEC500226D8C /* HAEntity */ = {
 			isa = PBXGroup;
 			children = (
-				4B291F471719CEC500226D8C /* HAEntity.h */,
-				4B291F491719CEC500226D8C /* HAEntity.m */,
 				4BB63D4F1719D24300CF0A0C /* HAEntityManager.h */,
 				4BB63D501719D24300CF0A0C /* HAEntityManager.m */,
 				4BBC68FC1719ECE7008D1775 /* HABaseEntity.h */,
@@ -167,6 +163,8 @@
 				4BBC6908171A1EFB008D1775 /* HAEntityMigrating.h */,
 				4BBC6909171A203D008D1775 /* HATableEntityMigration.h */,
 				4BBC690A171A203D008D1775 /* HATableEntityMigration.m */,
+				4B41D23417225E63006248DA /* HASQLMigration.h */,
+				4B41D23517225E63006248DA /* HASQLMigration.m */,
 				4B291F451719CEC500226D8C /* Supporting Files */,
 			);
 			path = HAEntity;
@@ -183,8 +181,6 @@
 		4B291F591719CEC500226D8C /* HAEntityTests */ = {
 			isa = PBXGroup;
 			children = (
-				4B291F5F1719CEC500226D8C /* HAEntityTests.h */,
-				4B291F601719CEC500226D8C /* HAEntityTests.m */,
 				4BB63D521719D28600CF0A0C /* HAEntityManagerTest.h */,
 				4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */,
 				4BBC68FF1719FBBF008D1775 /* HABaseEntityTest.h */,
@@ -193,6 +189,8 @@
 				4BBC6910171D063A008D1775 /* HATableEntityTest.m */,
 				4BBC690C171A425B008D1775 /* HATableEntityMigrationTest.h */,
 				4BBC690D171A425B008D1775 /* HATableEntityMigrationTest.m */,
+				4B41D23117223603006248DA /* HAReadEntityTest.h */,
+				4B41D23217223603006248DA /* HAReadEntityTest.m */,
 				4BBC68F71719D93A008D1775 /* libPods.a */,
 				4B291F5A1719CEC500226D8C /* Supporting Files */,
 			);
@@ -336,12 +334,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B291F4A1719CEC500226D8C /* HAEntity.m in Sources */,
 				4BB63D511719D24300CF0A0C /* HAEntityManager.m in Sources */,
 				4BBC68FE1719ECE7008D1775 /* HABaseEntity.m in Sources */,
 				4BBC69041719FDB1008D1775 /* HATableEntity.m in Sources */,
 				4BBC69071719FDC4008D1775 /* HAReadEntity.m in Sources */,
 				4BBC690B171A203D008D1775 /* HATableEntityMigration.m in Sources */,
+				4B41D23617225E63006248DA /* HASQLMigration.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,11 +347,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B291F611719CEC500226D8C /* HAEntityTests.m in Sources */,
 				4BB63D541719D28600CF0A0C /* HAEntityManagerTest.m in Sources */,
 				4BBC69011719FBBF008D1775 /* HABaseEntityTest.m in Sources */,
 				4BBC690E171A425B008D1775 /* HATableEntityMigrationTest.m in Sources */,
 				4BBC6911171D063A008D1775 /* HATableEntityTest.m in Sources */,
+				4B41D23317223603006248DA /* HAReadEntityTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

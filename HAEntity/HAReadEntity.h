@@ -12,10 +12,11 @@
 
 + (NSString*) tableName;
 
-
 + (NSArray*) group_by:(NSString*)group_by;
-+ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by;
-+ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
-+ (void)     group_by:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args;
++ (NSArray*) group_by:(NSString*)group_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (NSArray*) group_by:(NSString*)group_by params:(id)params list:(va_list)args;
++ (void)     group_by_each:(HABaseEntityEachHandler)block group_by:(NSString*)group_by;
++ (void)     group_by_each:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (void)     group_by_each:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args;
 
 @end

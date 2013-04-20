@@ -12,7 +12,7 @@
 #import "HAEntityManager.h"
 #import "HABaseEntity.h"
 
-#define DEBUG_SHOW_EXECUTE_QUERY_SQL
+//#define DEBUG_SHOW_EXECUTE_QUERY_SQL
 
 static NSString* getPropertyType(objc_property_t property) {
     const char *attributes = property_getAttributes(property);
@@ -295,6 +295,7 @@ static NSString* getPropertyType(objc_property_t property) {
     return paramList;
 }
 
+
 + (void) HA_executeQuery:(HABaseEntityEachHandler)block selectPrefix:(NSString*)selectPrefix sqlPrefix:(NSString*)sqlPrefix condition:(NSString*)condition params:(id)params list:(va_list)args
 {
     NSString* querySql = nil;
@@ -310,7 +311,11 @@ static NSString* getPropertyType(objc_property_t property) {
 #ifdef DEBUG_SHOW_EXECUTE_QUERY_SQL
     LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@'", querySql);
 #endif
-    
+
+    if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+        LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@'", querySql);
+    }
+
     [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
         BOOL stop = FALSE;
         FMResultSet* results = paramList ? [db executeQuery:querySql withArgumentsInArray:paramList] : [db executeQuery:querySql];
@@ -323,6 +328,10 @@ static NSString* getPropertyType(objc_property_t property) {
             }
         }
         [results close];
+
+        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+            LOG(@"HABaseEntity::HA_executeQuery last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+        }
     }];
 }
 
@@ -558,7 +567,7 @@ static NSString* getPropertyType(objc_property_t property) {
     Class entityClass = [self class];
     
     [entityClass properties:propertyNames propertyTypes:propertyTypes];
-    
+
     NSUInteger propertyCount = propertyNames.count;
     for (NSUInteger i = 0;i < propertyCount;i++) {
         NSString* propName = [propertyNames objectAtIndex:i];

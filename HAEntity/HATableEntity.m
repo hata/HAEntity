@@ -20,6 +20,9 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
 {
     // TODO: Should resolve automatically from classname.
     // and it may be better to call a delegate to convert classname to table name.
+    NSString* className = NSStringFromClass([self class]);
+    NSString* exceptionReason = [NSString stringWithFormat:@"%@ doesn't override tableName class method to return a table name.", className];
+    [[NSException exceptionWithName:@"NoTableNameFoundException" reason:exceptionReason userInfo:nil] raise];
     return nil;
 }
 

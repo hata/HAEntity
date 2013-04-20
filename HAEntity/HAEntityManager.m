@@ -12,6 +12,7 @@
 @implementation HAEntityManager
 
 const static NSString* THREAD_LOCAL_KEY_HAENTITY_MANAGER_IN_TRANS_FMDATABASE = @"HAEntityManager::InTransactionFMDatabase";
+const static NSString* THREAD_LOCAL_KEY_HAENTITY_MANAGER_TRACE_LEVEL = @"HAEntityManager::TraceLevel";
 
 static NSString* SYNC_OBJECT = @"HAEntityManager::SYNC_OBJECT";
 static HAEntityManager* _defaultInstance = nil;
@@ -75,6 +76,28 @@ static NSMutableArray* _managerInstances = nil;
         
         return entityManager;
     }
+}
+
+
++ (void) trace:(HAEntityManagerTraceLevel)level block:(void (^)())block
+{
+    NSMutableDictionary* threadLocal = [[NSThread currentThread] threadDictionary];
+    @try {
+        [threadLocal setObject:[NSNumber numberWithInt:level] forKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_TRACE_LEVEL];
+        block();
+    }
+    @catch (NSException *exception) {
+    }
+    @finally {
+        [threadLocal removeObjectForKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_TRACE_LEVEL];
+    }
+}
+
++ (BOOL) isTraceEnabled:(HAEntityManagerTraceLevel)level
+{
+    NSMutableDictionary* threadLocal = [[NSThread currentThread] threadDictionary];
+    NSNumber* num = [threadLocal objectForKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_TRACE_LEVEL];
+    return num ? ([num integerValue] >= level) : FALSE;
 }
 
 
@@ -356,5 +379,7 @@ static NSMutableArray* _managerInstances = nil;
     
     [self HA_migrate:FALSE toVersion:INT_MIN migrating:migratings list:args];
 }
+
+
 
 @end

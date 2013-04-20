@@ -16,6 +16,16 @@
 #endif
 
 
+typedef enum HAEntityManagerTraceLevel : NSInteger {
+    HAEntityManagerTraceLevelError = 1,
+    HAEntityManagerTraceLevelWarning,
+    HAEntityManagerTraceLevelInfo,
+    HAEntityManagerTraceLevelFine,
+    HAEntityManagerTraceLevelFinest,
+    HAEntityManagerTraceLevelDebug
+} HAEntityManagerTraceLevel;
+
+
 /**
  * HAEntityManager* entityManager = [HAEntityManager instance:dbFilePath];
  * [entityManager save:entity];
@@ -54,6 +64,18 @@
  * @return an instance for the entity class. Otherwise a default instance.
  */
 + (HAEntityManager*) instanceForEntity:(Class)entityClass;
+
+
+/**
+ * Show executed sql and debug information in this block.
+ * @param block is used to enable trace.
+ */
++ (void) trace:(HAEntityManagerTraceLevel)level block:(void (^)())block;
+
+/**
+ * Check trace information.
+ */
++ (BOOL) isTraceEnabled:(HAEntityManagerTraceLevel)level;
 
 
 #pragma mark -
@@ -155,6 +177,5 @@
  * This is the same as down:INT_MIN migratings:migratings, ...
  */
 - (void) downToLowestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
-
 
 @end
