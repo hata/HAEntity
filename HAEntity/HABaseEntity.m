@@ -267,7 +267,7 @@ static NSString* getPropertyType(objc_property_t property) {
     return paramCount;
 }
 
-+ (NSArray*) HA_listToArray:(NSString*)condition firstParam:(id)firstParam list:(va_list)args
++ (NSArray*) convertListToArray:(NSString*)condition firstParam:(id)firstParam list:(va_list)args
 {
     NSMutableArray* paramList = [NSMutableArray new];
     int paramCount = [self HA_countParams:condition];
@@ -301,7 +301,7 @@ static NSString* getPropertyType(objc_property_t property) {
     NSArray* paramList = nil;
     
     if (condition) {
-        paramList = [self HA_listToArray:condition firstParam:params list:args];
+        paramList = [self convertListToArray:condition firstParam:params list:args];
         querySql = [NSMutableString stringWithFormat:@"%@ %@ %@", selectPrefix, sqlPrefix, condition];
     } else {
         querySql = [self selectPrefix];

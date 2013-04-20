@@ -22,7 +22,16 @@
 
 + (id) find_by_rowid:(sqlite_int64)rowid;
 
+// DELETE
++ (BOOL) remove_all;
++ (BOOL) remove:(NSString*)where;
++ (BOOL) remove:(NSString*)where params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
++ (BOOL) remove:(NSString*)where params:(id)params list:(va_list)args;
+
 - (BOOL) save;
+- (BOOL) save:(NSString*)properties, ... NS_REQUIRES_NIL_TERMINATION;
+- (BOOL) save:(NSString*)properties list:(va_list)args;
+
 - (BOOL) remove;
 
 @end

@@ -102,6 +102,16 @@ typedef void (^HABaseEntityEachHandler)(id entity, BOOL* stop);
 + (void)     order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params, ... NS_REQUIRES_NIL_TERMINATION;
 + (void)     order_by_each:(HABaseEntityEachHandler)block order_by:(NSString*)order_by params:(id)params list:(va_list)args;
 
+/*
+ * Helper method. This may be used in sub classes.
+ * @param condition contains parameters like col1 = ? and '?' is counted in this method
+ * to make warning.
+ * @param firstParam is added to the first element in NSArray.
+ * @param args is remained parameters.
+ * @return [firstParam, args ...]
+ *
+ */
++ (NSArray*) convertListToArray:(NSString*)condition firstParam:(id)firstParam list:(va_list)args;
 
 
 #pragma mark -

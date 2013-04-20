@@ -718,6 +718,35 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(2, result.numValue, @"Verify 1st object is returned.");
 }
 
+- (void)testFindFirstOneParam
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    [self createSample3:3 stringValue:@"foo"];
+    
+    // TODO: This is not good I should not set 1 = 1 or something where cruse.
+    HATestSample3* result = [HATestSample3 find_first:@"stringValue = ? order by numValue" params:@"foo", nil];
+    STAssertEquals(1, result.numValue, @"Verify 1st object is returned.");
+    
+    result = [HATestSample3 find_first:@"stringValue = ? order by numValue desc" params:@"foo", nil];
+    STAssertEquals(3, result.numValue, @"Verify 3rd object is returned.");
+}
+
+- (void)testFindFirstTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    [self createSample3:3 stringValue:@"foo"];
+    
+    // TODO: This is not good I should not set 1 = 1 or something where cruse.
+    HATestSample3* result = [HATestSample3 find_first:@"stringValue = ? or stringValue = ? order by numValue" params:@"foo", @"bar", nil];
+    STAssertEquals(1, result.numValue, @"Verify 1st object is returned.");
+    
+    result = [HATestSample3 find_first:@"stringValue = ? or stringValue = ? order by numValue desc" params:@"foo", @"bar", nil];
+    STAssertEquals(3, result.numValue, @"Verify 3rd object is returned.");
+}
+
+
 #pragma mark -
 #pragma mark select
 
@@ -774,7 +803,7 @@ static BOOL unprepareIsCalled = FALSE;
 }
 
 
-- (void)testSelect
+- (void)testSelectReturnArray
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -800,7 +829,7 @@ static BOOL unprepareIsCalled = FALSE;
 }
 
 
-- (void)testSelectWithParamStringOnly
+- (void)testSelectReturnArrayWithParamStringOnly
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -822,10 +851,65 @@ static BOOL unprepareIsCalled = FALSE;
     }
     
     // prepareEntity is called when creating table. So
-    STAssertEquals(3, count, @"Verify prepareEntity and unprepareEntity is called.");
+    STAssertEquals(3, count, @"Verify all entities are returned.");
 }
 
-- (void)testSelectWithOneParam
+
+- (void)testSelectReturnArrayWithOneParam
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSArray* entities = [HATestSample3 select:@"numValue, stringValue FROM test_table3 WHERE numValue = ?" params:[NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+}
+
+- (void)testSelectReturnArrayWithTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSArray* entities = [HATestSample3 select:@"numValue, stringValue FROM test_table3 WHERE numValue = ? or stringValue = ?" params:[NSNumber numberWithInt:1], @"foo", nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+}
+
+- (void)testSelectBlock
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 2;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 select_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } select:nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+}
+
+- (void)testSelectBlockWithStringOnly
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 2;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 select_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } select:@"numValue, stringValue FROM test_table3"];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+}
+
+- (void)testSelectBlockWithOneParam
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -842,10 +926,27 @@ static BOOL unprepareIsCalled = FALSE;
 }
 
 
+- (void)testSelectBlockWithTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 select_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } select:@"numValue, stringValue FROM test_table3 WHERE numValue = ? or stringValue = ?" params:[NSNumber numberWithInt:1], @"foo", nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+}
+
+
 #pragma mark -
 #pragma mark where
 
-- (void)testWhere
+- (void)testWhereReturnArray
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -870,7 +971,7 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(3, count, @"Verify prepareEntity and unprepareEntity is called.");
 }
 
-- (void)testWhereWithParamStringOnly
+- (void)testWhereReturnArrayWithParamStringOnly
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -882,7 +983,63 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEqualObjects(@"foo", sample3.stringValue, @"Verify stored value.");
 }
 
-- (void)testWhereWithOneParam
+- (void)testWhereReturnArrayWithOneParam
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSArray* entities = [HATestSample3 where:@"numValue = ?" params:[NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample3 = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample3.stringValue, @"Verify stored value.");
+}
+
+- (void)testWhereReturnArrayWithTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSArray* entities = [HATestSample3 where:@"numValue = ? or stringValue = ?" params:[NSNumber numberWithInt:1], @"foo", nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample3 = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample3.stringValue, @"Verify stored value.");
+}
+
+- (void)testWhereBlock
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 2;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } where:nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+}
+
+- (void)testWhereBlockWithStringOnly
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } where:@"numValue = 1"];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample3 = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample3.stringValue, @"Verify stored value.");
+}
+
+- (void)testWhereBlockWithOneParam
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -893,6 +1050,22 @@ static BOOL unprepareIsCalled = FALSE;
     [HATestSample3 where_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } where:@"numValue = ?" params:[NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample3 = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample3.stringValue, @"Verify stored value.");
+}
+
+- (void)testWhereBlockWithTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } where:@"numValue = ? or stringValue = ?" params:[NSNumber numberWithInt:1], @"foo", nil];
     STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
     HATestSample3* sample3 = [entities objectAtIndex:0];
     STAssertEqualObjects(@"foo", sample3.stringValue, @"Verify stored value.");
@@ -947,10 +1120,11 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(2, [[entities objectAtIndex:1] numValue], @"Verify order by.");
 }
 
+
 #pragma mark -
 #pragma mark order_by
 
-- (void)testOrder_by
+- (void)testOrder_byReturnArray
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -975,7 +1149,8 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(3, count, @"Verify prepareEntity and unprepareEntity is called.");
 }
 
-- (void)testOrder_byWithParamStringOnly
+
+- (void)testOrder_byReturnArrayWithStringOnly
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -992,8 +1167,82 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
 }
 
+- (void)testOrder_byReturnArrayWithOneParam
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSArray* entities = [HATestSample3 order_by:@"numValue limit ?" params:[NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+    
+    entities = [HATestSample3 order_by:@"numValue desc limit ?" params:[NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify 2nd entity is returned.");
+    sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
+}
 
-- (void)testOrder_byWithOneParam
+- (void)testOrder_byReturnArrayWithTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSArray* entities = [HATestSample3 order_by:@"numValue limit ? offset ?" params:[NSNumber numberWithInt:1], [NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
+    
+    entities = [HATestSample3 order_by:@"numValue desc limit ? offset ?" params:[NSNumber numberWithInt:1], [NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify 2nd entity is returned.");
+    sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+}
+
+
+- (void)testOrder_byBlockNil
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 2;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } order_by:nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+}
+
+- (void)testOrder_byBlock
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 2;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } order_by:@"numValue"];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+    
+    entities = [NSMutableArray new];
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } order_by:@"numValue desc"];
+    STAssertEquals(correctResult, entities.count, @"Verify 2nd entity is returned.");
+    sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
+}
+
+- (void)testOrder_byBlockWithOneParam
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
@@ -1012,10 +1261,35 @@ static BOOL unprepareIsCalled = FALSE;
     [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
         [entities addObject:entity];
     } order_by:@"numValue desc limit ?" params:[NSNumber numberWithInt:1], nil];
-    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    STAssertEquals(correctResult, entities.count, @"Verify 2nd entity is returned.");
     sample = [entities objectAtIndex:0];
     STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
 }
+
+- (void)testOrder_byBlockWithTwoParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSUInteger correctResult = 1;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } order_by:@"numValue limit ? offset ?" params:[NSNumber numberWithInt:1], [NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify 2nd entity is returned.");
+    HATestSample3* sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"bar", sample.stringValue, @"Verify stored value.");
+    
+    entities = [NSMutableArray new];
+    [HATestSample3 order_by_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } order_by:@"numValue desc limit ? offset ?" params:[NSNumber numberWithInt:1], [NSNumber numberWithInt:1], nil];
+    STAssertEquals(correctResult, entities.count, @"Verify first entity is returned.");
+    sample = [entities objectAtIndex:0];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
+}
+
 
 /*
 #pragma mark -

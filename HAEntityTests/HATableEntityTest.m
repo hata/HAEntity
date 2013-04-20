@@ -21,6 +21,8 @@
 @property NSInteger numValue;
 @property NSString* stringValue;
 
++(HATableEntityTestSample1*) create:(NSInteger)numValue stringValue:(NSString*)stringValue;
+
 @end
 
 @implementation HATableEntityTestSample1
@@ -31,6 +33,15 @@
 
 @synthesize numValue;
 @synthesize stringValue;
+
++(HATableEntityTestSample1*) create:(NSInteger)numValue stringValue:(NSString*)stringValue
+{
+    HATableEntityTestSample1* data = [HATableEntityTestSample1 new];
+    data.numValue = numValue;
+    data.stringValue = stringValue;
+    [data save];
+    return data;
+}
 
 @end
 
@@ -46,6 +57,7 @@
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
                                                                           entityClasses:[HATableEntityTestSample1 class], nil];
     [[HAEntityManager instance] up:2 migratings:migration, nil];
+    [[HAEntityManager instanceForPath:dbFilePath] addEntityClass:[HATableEntityTestSample1 class]];
 }
 
 - (void)tearDown
@@ -122,6 +134,95 @@
     
     STAssertNil([HATableEntityTestSample1 find_by_rowid:rowid], @"Verify there is no data.");
 }
+
+- (void)testRemoveAll
+{
+    [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+
+    NSUInteger correctCount = 2;
+    NSArray* result = [HATableEntityTestSample1 select_all];
+    STAssertEquals(correctCount, result.count, @"Verify data.");
+    [HATableEntityTestSample1 remove_all];
+    correctCount = 0;
+    result = [HATableEntityTestSample1 select_all];
+    STAssertEquals(correctCount, result.count, @"Verify no data.");
+}
+
+- (void)testRemoveWhere
+{
+    [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    BOOL removeResult = [HATableEntityTestSample1 remove:@"numValue = 2"];
+    STAssertTrue(removeResult, @"Verify remove is succeeded.");
+
+    NSUInteger correctCount = 1;
+    NSArray* result = [HATableEntityTestSample1 select_all];
+    STAssertEquals(correctCount, result.count, @"Verify there is an entry.");
+    HATableEntityTestSample1* remain = [result objectAtIndex:0];
+    STAssertEquals(1, remain.numValue, @"Verify numValue = 1 is remained.");
+}
+
+- (void)testRemoveWhereOneParam
+{
+    [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    BOOL removeResult = [HATableEntityTestSample1 remove:@"numValue = ?" params:[NSNumber numberWithInt:2], nil];
+    STAssertTrue(removeResult, @"Verify remove is succeeded.");
+    
+    NSUInteger correctCount = 1;
+    NSArray* result = [HATableEntityTestSample1 select_all];
+    STAssertEquals(correctCount, result.count, @"Verify there is an entry.");
+    HATableEntityTestSample1* remain = [result objectAtIndex:0];
+    STAssertEquals(1, remain.numValue, @"Verify numValue = 1 is remained.");
+}
+
+- (void)testRemoveWhereSomeParams
+{
+    [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    BOOL removeResult = [HATableEntityTestSample1 remove:@"numValue = ? and stringValue = ?" params:[NSNumber numberWithInt:2], @"bar", nil];
+    STAssertTrue(removeResult, @"Verify remove is succeeded.");
+    
+    NSUInteger correctCount = 1;
+    NSArray* result = [HATableEntityTestSample1 select_all];
+    STAssertEquals(correctCount, result.count, @"Verify there is an entry.");
+    HATableEntityTestSample1* remain = [result objectAtIndex:0];
+    STAssertEquals(1, remain.numValue, @"Verify numValue = 1 is remained.");
+}
+
+- (void)testSaveProperties
+{
+    [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    HATableEntityTestSample1* sample = [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    sqlite_int64 rowid = sample.rowid;
+    sample.stringValue = @"foo";
+    sample.numValue = 10;
+    [sample save:@"stringValue", nil];
+    
+    sample = [HATableEntityTestSample1 find_by_rowid:rowid];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stringValue is updated.");
+    STAssertEquals(2, sample.numValue, @"Verify numValue is not updated.");
+}
+
+- (void)testSavePropertiesWithArgs
+{
+    [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    HATableEntityTestSample1* sample = [HATableEntityTestSample1 create:2 stringValue:@"bar"];
+    sqlite_int64 rowid = sample.rowid;
+    sample.stringValue = @"foo";
+    sample.numValue = 10;
+    [sample save:@"stringValue", @"numValue", nil];
+    
+    sample = [HATableEntityTestSample1 find_by_rowid:rowid];
+    STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stringValue is updated.");
+    STAssertEquals(10, sample.numValue, @"Verify numValue is updated.");
+}
+
+
 
 
 
