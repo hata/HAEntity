@@ -10,6 +10,8 @@
 
 #import "sqlite3.h"
 
+
+
 @interface HATableEntity : HABaseEntity {
 @protected
     sqlite_int64 _rowid;

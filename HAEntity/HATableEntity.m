@@ -26,6 +26,20 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
     return nil;
 }
 
+
+// TODO: Check code should check more details of columns.
++ (NSString*)addRequiredColumns:(NSString*)selectColumns {
+    if (!selectColumns) {
+        return nil;
+    }
+
+    NSUInteger len = [ROW_ID_COLUMN_NAME length];
+    return ([selectColumns length] < len || ![ROW_ID_COLUMN_NAME isEqualToString:[selectColumns substringToIndex:len]]) ?
+      [NSString stringWithFormat:@"%@, %@", ROW_ID_COLUMN_NAME, selectColumns] :
+      selectColumns;
+}
+
+
 - (id) init
 {
     if (self = [super init]) {

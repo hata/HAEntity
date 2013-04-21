@@ -348,7 +348,7 @@
 
 - (void)testReload
 {
-    [HAEntityManager trace:HAEntityManagerTraceLevelDebug block:^(){
+//    [HAEntityManager trace:HAEntityManagerTraceLevelDebug block:^(){
     HATableEntityTestSample3* sample3 = [HATableEntityTestSample3 new];
     sample3.stringValue = @"foo";
     [sample3 save];
@@ -363,10 +363,20 @@
     [sample3 reload];
 
     STAssertEqualObjects(@"bar", sample3.stringValue, @"Verify reload load a new value.");
-    }];
+//    }];
     
 }
 
+- (void)testSelectCustomColumnsAddRowid
+{
+    HATableEntityTestSample3* sample3 = [HATableEntityTestSample3 new];
+    sample3.stringValue = @"foo";
+    [sample3 save];
+
+    NSArray* result = [HATableEntityTestSample3 select:@"stringValue, numValue FROM table_sample3 WHERE rowid=?" params:[NSNumber numberWithLongLong:sample3.rowid], nil];
+    HATableEntityTestSample3* sample3b = [result objectAtIndex:0];
+    STAssertEquals(sample3b.rowid, sample3.rowid, @"Verify select method can return a correct rowid");
+}
 
 
 

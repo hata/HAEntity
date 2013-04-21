@@ -66,6 +66,11 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
 }
 
 
++ (NSString*)addRequiredColumns:(NSString*)selectColumns {
+    return selectColumns;
+}
+
+
 
 #pragma mark -
 #pragma mark query methods
@@ -168,7 +173,7 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
 
 + (void) select_each:(HABaseEntityEachHandler)block select:(NSString*)select params:(id)params list:(va_list)args
 {
-    [self HA_executeQuery:block selectPrefix:@"" sqlPrefix:@"SELECT" condition:select params:params list:args];
+    [self HA_executeQuery:block selectPrefix:@"" sqlPrefix:@"SELECT" condition:[self addRequiredColumns:select] params:params list:args];
 }
 
 
