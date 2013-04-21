@@ -38,8 +38,26 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
 - (id) initWithResultSet:(FMResultSet*)resultSet
 {
     if (self = [super init]) {
-        if ([[resultSet columnNameToIndexMap] objectForKey:ROW_ID_COLUMN_NAME]) {
-            _rowid = [resultSet longLongIntForColumn:ROW_ID_COLUMN_NAME];
+        BOOL isRowidSet = FALSE;
+
+        // When a table has INTEGER PRIMARY KEY, rowid column name is changed
+        // from rowid to the primary key column. So, the name is changed.
+        // In this case, my code expected to return "rowid" column instead of pk.
+        // If 'rowid' column is not found, I use first column(index=0) as rowid
+        // because my code added rowid column at the first column.
+        // If subclass redefine select stmt, it may be different. But,
+        // it may be difficult for me to find it. So, right now, current code looks
+        // enough to avoid the issue.
+        int columnCount = [resultSet columnCount];
+        for (int i = 0;i < columnCount;i++) {
+            if ([ROW_ID_COLUMN_NAME isEqualToString:[[resultSet columnNameForIndex:i] lowercaseString]]) {
+                _rowid = [resultSet longLongIntForColumnIndex:i];
+                isRowidSet = TRUE;
+                break;
+            }
+        }
+        if (!isRowidSet && columnCount > 0) {
+            _rowid = [resultSet longLongIntForColumnIndex:0];
         }
         _isNew = FALSE;
     }
@@ -131,94 +149,6 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
 
 - (BOOL) save
 {
-    /*
-    __block BOOL result = FALSE;
-    Class entityClass = [self class];
-    
-    NSMutableArray* propertyNames = [NSMutableArray new];
-    NSMutableArray* propertyTypes = [NSMutableArray new];
-    [entityClass properties:propertyNames propertyTypes:propertyTypes];
-    NSUInteger propCount = propertyNames.count;
-    
-    if (_isNew) {
-        
-        // Build insert stmt like INSERT table_name (column, ...) values (?,...)
-        // and prepare each values.
-        NSMutableString* insertSQL = [NSMutableString new];
-        NSMutableString* params = [NSMutableString new];
-        NSMutableArray* values = [NSMutableArray new];
-        
-        BOOL firstColumn = TRUE;
-        [insertSQL appendFormat:@"INSERT INTO %@ (",[entityClass tableName]];
-        for (NSUInteger i = 0;i < propCount;i++) {
-            NSString* propName = [propertyNames objectAtIndex:i];
-            NSString* propType = [propertyTypes objectAtIndex:i];
-            NSString* columnName = [entityClass convertPropertyToColumnName:propName];
-            id value = [self convertToObjectValue:propName propertyType:propType];
-            NSString* paramFormat = (nil != value) ? @"?" : @"null";
-            
-            if (firstColumn) {
-                firstColumn = FALSE;
-                [insertSQL appendFormat:@"%@", columnName];
-                [params appendFormat:@"(%@", paramFormat];
-            } else {
-                [insertSQL appendFormat:@", %@", columnName];
-                [params appendFormat:@",%@", paramFormat];
-            }
-            
-            if ((nil != value)) {
-                [values addObject:value];
-            }
-        }
-        
-        [params appendString:@")"];
-        [insertSQL appendFormat:@") VALUES %@;", params];
-        
-        if (firstColumn) {
-            LOG(@"WARNING: There is no column to insert data. SQL is %@", insertSQL);
-        }
-        
-        // insert.
-        [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
-            //LOG(@"insert SQL: %@", insertSQL);
-            result = [db executeUpdate:insertSQL withArgumentsInArray:values];
-            _rowid = [db lastInsertRowId];
-            _isNew = FALSE;
-        }];
-    } else {
-        // Build insert stmt like UPDATE table_name SET column=?, ... where id = ?;";
-        // and prepare each values.
-        NSMutableString* updateSQL = [NSMutableString new];
-        NSMutableArray* values = [NSMutableArray new];
-        
-        BOOL firstColumn = TRUE;
-        [updateSQL appendFormat:@"UPDATE %@ SET ",[entityClass tableName]];
-        for (NSUInteger i = 0;i < propCount;i++) {
-            NSString* propName = [propertyNames objectAtIndex:i];
-            NSString* propType = [propertyTypes objectAtIndex:i];
-            NSString* columnName = [entityClass convertPropertyToColumnName:propName];
-            id value = [self convertToObjectValue:propName propertyType:propType];
-            NSString* param = (nil != value) ? @"?" : @"null";
-            if (firstColumn) {
-                firstColumn = FALSE;
-                [updateSQL appendFormat:@"%@=%@", columnName, param];
-            } else {
-                [updateSQL appendFormat:@", %@=%@", columnName, param];
-            }
-            if (nil != value) {
-                [values addObject:value];
-            }
-        }
-        [updateSQL appendFormat:@" WHERE %@ = ?", ROW_ID_COLUMN_NAME];
-        [values addObject:[NSNumber numberWithInt:_rowid]];
-        
-        [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
-            result = [db executeUpdate:updateSQL withArgumentsInArray:values];
-        }];
-    }
-    return result;
-     */
-    
     return [self save:nil list:NULL];
 }
 
@@ -236,8 +166,8 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
 }
 
 
-- (void) HA_someOfProperties:(Class)entityClass propertyNames:(NSMutableArray*)propertyNames
-               propertyTypes:(NSMutableArray*)propertyTypes properties:(NSString*)properties list:(va_list)args
+- (void) HA_someOfUpdatingProperties:(Class)entityClass propertyNames:(NSMutableArray*)propertyNames
+                       propertyTypes:(NSMutableArray*)propertyTypes properties:(NSString*)properties list:(va_list)args
 {
     if (properties) {
         NSMutableArray* savedPropNameList = [NSMutableArray new];
@@ -268,9 +198,36 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
             }
         }
     } else {
-        [entityClass properties:propertyNames propertyTypes:propertyTypes];
+        [entityClass propertiesForUpdates:propertyNames propertyTypes:propertyTypes];
     }
 }
+
+- (void) HA_updateReadonlyProperties:(Class)entityClass database:(FMDatabase*)db rowid:(sqlite_int64)rowid
+{
+    NSMutableArray* readonlyPropertyNames = [NSMutableArray new];
+    [entityClass propertiesForReadOnly:readonlyPropertyNames propertyTypes:nil];
+
+    if (readonlyPropertyNames.count > 0) {
+        NSArray* params = [NSArray arrayWithObject:[NSNumber numberWithLongLong:rowid]];
+        NSString* selectReadonlySQL = [NSString stringWithFormat:@"SELECT %@ FROM %@ WHERE %@ = ?",
+                                       [readonlyPropertyNames componentsJoinedByString:@", "],
+                                       [entityClass tableName],
+                                       ROW_ID_COLUMN_NAME];
+        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+            LOG(@"HATableEntity::HA_updateReadonlyProperties executeQuery:'%@' withArray: %@", selectReadonlySQL, params);
+        }
+        FMResultSet* resultSet = [db executeQuery:selectReadonlySQL withArgumentsInArray:params];
+        [resultSet next];
+
+        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+            LOG(@"HATableEntity::HA_updateReadonlyProperties last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+        }
+
+        [self setResultSetToProperties:resultSet];
+        [resultSet close];
+    }
+}
+
 
 - (BOOL) save:(NSString*)properties list:(va_list)args
 {
@@ -279,7 +236,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
 
     NSMutableArray* propertyNames = [NSMutableArray new];
     NSMutableArray* propertyTypes = [NSMutableArray new];
-    [self HA_someOfProperties:entityClass propertyNames:propertyNames propertyTypes:propertyTypes properties:properties list:args];
+    [self HA_someOfUpdatingProperties:entityClass propertyNames:propertyNames propertyTypes:propertyTypes properties:properties list:args];
     NSUInteger propCount = propertyNames.count;
     
     if (_isNew) {
@@ -311,7 +268,8 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
                 [values addObject:value];
             }
         }
-        
+
+        // TODO: Define the behavior if there is no need to update column here(AUTOINCREMENT and DEFAULT only.)
         [params appendString:@")"];
         [insertSQL appendFormat:@") VALUES %@;", params];
         
@@ -321,11 +279,30 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         
         // insert.
         [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
-            //LOG(@"insert SQL: %@", insertSQL);
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+                LOG(@"HATableEntity::save insertSQL:'%@' withArray: %@", insertSQL, values);
+            }
+
             result = [db executeUpdate:insertSQL withArgumentsInArray:values];
+
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+                LOG(@"HATableEntity::save after insertSQL last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+            }
+
             _rowid = [db lastInsertRowId];
             _isNew = FALSE;
+
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+                LOG(@"HATableEntity::save HA_updateReadonlyProperties:'%@' withArray: %@", insertSQL, values);
+            }
+            
+            [self HA_updateReadonlyProperties:entityClass database:db rowid:_rowid];
+            
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+                LOG(@"HATableEntity::save after HA_updateReadonlyProperties last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+            }
         }];
+
     } else {
         // Build insert stmt like UPDATE table_name SET column=?, ... where id = ?;";
         // and prepare each values.
@@ -351,10 +328,18 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
             }
         }
         [updateSQL appendFormat:@" WHERE %@ = ?", ROW_ID_COLUMN_NAME];
-        [values addObject:[NSNumber numberWithInt:_rowid]];
-        
+        [values addObject:[NSNumber numberWithLongLong:_rowid]];
+
         [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+                LOG(@"HATableEntity::save updateSQL:'%@' withArray: %@", updateSQL, values);
+            }
+            
             result = [db executeUpdate:updateSQL withArgumentsInArray:values];
+
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+                LOG(@"HATableEntity::save last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+            }
         }];
     }
     return result;
@@ -375,7 +360,30 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
     return result;
 }
 
+- (id) reload
+{
+    Class entityClass = [self class];
+    NSString* querySql = [NSString stringWithFormat:@"%@ WHERE %@ = ?", [entityClass selectPrefix], ROW_ID_COLUMN_NAME];
+    NSArray* paramList = [NSArray arrayWithObject:[NSNumber numberWithLongLong:_rowid]];
+    __block BOOL propertyIsLoad = FALSE;
+    
+    [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase *db) {
+        FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
+        
+        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
+            LOG(@"HATableEntity::reload last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+        }
 
+        while ([results next]) {
+            [self setResultSetToProperties:results];
+            propertyIsLoad = TRUE;
+            break;
+        }
+        [results close];
+    }];
+
+    return propertyIsLoad ? self : nil;
+}
 
 
 @end

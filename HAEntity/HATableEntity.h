@@ -34,4 +34,6 @@
 
 - (BOOL) remove;
 
+- (id) reload;
+
 @end

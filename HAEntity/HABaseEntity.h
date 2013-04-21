@@ -63,6 +63,17 @@ typedef void (^HABaseEntityEachHandler)(id entity, BOOL* stop);
  */
 + (void) properties:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes;
 
+
+/**
+ * Remove readonly properties from returned lists.
+ */
++ (void) propertiesForUpdates:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes;
+
+/**
+ * Return readonly properties.
+ */
++ (void) propertiesForReadOnly:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes;
+
 /**
  * Call this method to convert property name to column name.
  * Just return propertyName if no need to convert the names.

@@ -14,28 +14,57 @@
 
 //#define DEBUG_SHOW_EXECUTE_QUERY_SQL
 
-static NSString* getPropertyType(objc_property_t property) {
-    const char *attributes = property_getAttributes(property);
-    char buffer[1 + strlen(attributes)];
+@implementation HABaseEntity
+
+
+const static NSString* PROPERTY_TYPE_CHAR = @"c";
+const static NSString* PROPERTY_TYPE_SHORT = @"s";
+const static NSString* PROPERTY_TYPE_INT = @"i";
+const static NSString* PROPERTY_TYPE_LONG = @"l";
+const static NSString* PROPERTY_TYPE_LONG_LONG = @"q";
+const static NSString* PROPERTY_TYPE_UNSIGNED_CHAR = @"C";
+const static NSString* PROPERTY_TYPE_UNSIGNED_INT = @"I";
+const static NSString* PROPERTY_TYPE_UNSIGNED_SHORT = @"S";
+const static NSString* PROPERTY_TYPE_UNSIGNED_LONG = @"L";
+const static NSString* PROPERTY_TYPE_UNSIGNED_LONG_LONG = @"Q";
+const static NSString* PROPERTY_TYPE_BOOL = @"B";
+const static NSString* PROPERTY_TYPE_FLOAT = @"f";
+const static NSString* PROPERTY_TYPE_DOUBLE = @"d";
+const static NSString* PROPERTY_TYPE_CLASS_NSDate = @"NSDate";
+const static NSString* PROPERTY_TYPE_CLASS_NSString = @"NSString";
+const static NSString* PROPERTY_TYPE_CLASS_NSData = @"NSData";
+
+const static NSString* PROPERTY_ATTR_READONLY = @"R";
+
+
+/*
+ * @see https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html#//apple_ref/doc/uid/TP40008048-CH101-SW1
+ */
+static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attrs) {
+    const char* attributes = property_getAttributes(property);
+    char buffer[strlen(attributes) + 1];
     strcpy(buffer, attributes);
-    char *state = buffer, *attribute;
+    char *state = buffer;
+    char *attribute;
+    NSString* type = @"";
+    
     while ((attribute = strsep(&state, ",")) != NULL) {
         if (attribute[0] == 'T' && attribute[1] != '@') {
             NSData* data = [NSData dataWithBytes:(attribute + 1) length:strlen(attribute) - 1];
-            return [NSString stringWithCString:(const char *)[data bytes] encoding:NSASCIIStringEncoding];
-        }
-        else if (attribute[0] == 'T' && attribute[1] == '@' && strlen(attribute) == 2) {
-            return @"id";
-        }
-        else if (attribute[0] == 'T' && attribute[1] == '@') {
+            type = [NSString stringWithCString:(const char *)[data bytes] encoding:NSASCIIStringEncoding];
+        } else if (attribute[0] == 'T' && attribute[1] == '@' && strlen(attribute) == 2) {
+            type = @"id";
+        } else if (attribute[0] == 'T' && attribute[1] == '@') {
             NSData* data = [NSData dataWithBytes:(attribute + 3) length:strlen(attribute) - 4];
-            return [NSString stringWithCString:(const char *)[data bytes] encoding:NSASCIIStringEncoding];
+            type = [NSString stringWithCString:(const char *)[data bytes] encoding:NSASCIIStringEncoding];
+        } else if (attrs != nil && attribute[0] == 'R' /* && strlen(attribute) == 1*/) {
+            [attrs addObject:PROPERTY_ATTR_READONLY];
         }
     }
-    return @"";
+    
+    return type;
 }
 
-@implementation HABaseEntity
 
 
 #pragma mark -
@@ -313,7 +342,7 @@ static NSString* getPropertyType(objc_property_t property) {
 #endif
 
     if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-        LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@'", querySql);
+        LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@' params:%@", querySql, paramList);
     }
 
     [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
@@ -427,7 +456,7 @@ static NSString* getPropertyType(objc_property_t property) {
         const char *propName = property_getName(property);
         if(propName) {
             NSString *propertyName = [NSString stringWithCString:propName encoding:NSASCIIStringEncoding];
-            NSString *propertyType = getPropertyType(property);
+            NSString *propertyType = HA_getPropertyType(property, nil);
             [columnNames addObject:[self convertPropertyToColumnName:propertyName]];
             [columnTypes addObject:[self convertPropertyToColumnType:propertyType]];
             // LOG(@" property name is %@ %@", propertyName, propertyType);
@@ -445,21 +474,73 @@ static NSString* getPropertyType(objc_property_t property) {
 
 + (void) properties:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
 {
+    [self properties:propertyNames propertyTypes:propertyTypes attributes:nil];
+}
+
+/**
+ * Get properties with types and other attributes.
+ * @param propertyNames are returned name list.
+ * @param propertyTypes are returned type list.
+ * This type list is using TypeEncoding.
+ * https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100-SW1
+ * So, primitive types are like 'i' and 'l'.
+ * @param attributes are other than type(Txxx). For example, @"R" is readonly.(And it is the only one to be supported....)
+ * Each element is NSArray. And the value is NSString. If I can write template, it is like NSMutableArray<NSSet<NSString>>>.
+ */
++ (void) properties:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes attributes:(NSMutableArray*)attributes
+{
     unsigned int outCount, i;
     objc_property_t *properties = class_copyPropertyList(self, &outCount);
     for(i = 0; i < outCount; i++) {
         objc_property_t property = properties[i];
         const char *propName = property_getName(property);
         if(propName) {
+            NSMutableSet* attrList = attributes ? [NSMutableSet new] : nil;
             NSString *propertyName = [NSString stringWithCString:propName encoding:NSASCIIStringEncoding];
-            NSString *propertyType = getPropertyType(property);
+            NSString *propertyType = HA_getPropertyType(property, attrList);
             [propertyNames addObject:propertyName];
             [propertyTypes addObject:propertyType];
-            // LOG(@" property name is %@ %@", propertyName, propertyType);
+            [attributes addObject:attrList];
         }
     }
     free(properties);
 }
+
++ (void) propertiesForUpdates:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
+{
+    NSMutableArray* attributes = [NSMutableArray new];
+    [self properties:propertyNames propertyTypes:propertyTypes attributes:attributes];
+
+    int offset = 0;
+    NSUInteger propCount = attributes.count;
+    for (NSUInteger i = 0;i < propCount;i++) {
+        NSSet* attrSet = [attributes objectAtIndex:i];
+        if (attrSet.count > 0 && [attrSet member:PROPERTY_ATTR_READONLY]) {
+            [propertyNames removeObjectAtIndex:(i + offset)];
+            [propertyTypes removeObjectAtIndex:(i + offset)];
+            offset--;
+        }
+    }
+}
+
++ (void) propertiesForReadOnly:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
+{
+    NSMutableArray* savedPropertyNames = [NSMutableArray new];
+    NSMutableArray* savedPropertyTypes = [NSMutableArray new];
+    NSMutableArray* attributes = [NSMutableArray new];
+    
+    [self properties:savedPropertyNames propertyTypes:savedPropertyTypes attributes:attributes];
+    
+    NSUInteger propCount = attributes.count;
+    for (NSUInteger i = 0;i < propCount;i++) {
+        NSSet* attrSet = [attributes objectAtIndex:i];
+        if (attrSet.count > 0 && [attrSet member:PROPERTY_ATTR_READONLY]) {
+            [propertyNames addObject:[savedPropertyNames objectAtIndex:i]];
+            [propertyTypes addObject:[savedPropertyTypes objectAtIndex:i]];
+        }
+    }
+}
+
 
 + (NSString*) convertPropertyToColumnName:(NSString*) propertyName
 {
@@ -473,30 +554,29 @@ static NSString* getPropertyType(objc_property_t property) {
 }
 */
 
-
 /**
  * @see https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100-SW1
  */
 + (NSString*) convertPropertyToColumnType:(NSString*) propertyType
 {
-    if ([@"NSString" isEqualToString:propertyType]) {
+    if ([PROPERTY_TYPE_CLASS_NSString isEqualToString:propertyType]) {
         return @"TEXT";
-    } else if ([@"i" isEqualToString:propertyType] ||
-               [@"c" isEqualToString:propertyType] ||
-               [@"s" isEqualToString:propertyType] ||
-               [@"l" isEqualToString:propertyType] ||
-               [@"q" isEqualToString:propertyType] ||
-               [@"C" isEqualToString:propertyType] ||
-               [@"I" isEqualToString:propertyType] ||
-               [@"S" isEqualToString:propertyType] ||
-               [@"L" isEqualToString:propertyType] ||
-               [@"Q" isEqualToString:propertyType] ||
-               [@"B" isEqualToString:propertyType]) {
-        return @"NUMERIC";
-    } else if ([@"f" isEqualToString:propertyType] ||
-               [@"d" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_INT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_CHAR isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_SHORT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_LONG isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_LONG_LONG isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_UNSIGNED_CHAR isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_UNSIGNED_INT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_UNSIGNED_SHORT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_UNSIGNED_LONG isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_UNSIGNED_LONG_LONG isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_BOOL isEqualToString:propertyType]) {
+        return @"INTERGER";
+    } else if ([PROPERTY_TYPE_FLOAT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_DOUBLE isEqualToString:propertyType]) {
         return @"REAL";
-    } else if ([@"NSDate" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_CLASS_NSDate isEqualToString:propertyType]) {
         return @"NUMERIC";
     } else {
         // e.g. NSData
@@ -506,7 +586,7 @@ static NSString* getPropertyType(objc_property_t property) {
 
 // TODO: I don't implement it yet...
 // camel class name to underscore plural name and remove prefix text.
-+ (NSString*) classNameToTableName:(NSString*) className prefixLength:(NSUInteger)prefixLength
++ (NSString*) HA_classNameToTableName:(NSString*) className prefixLength:(NSUInteger)prefixLength
 {
     className = [className substringFromIndex:prefixLength]; // remove 'AA' from AABarFoo.
     NSUInteger length = className.length;
@@ -568,66 +648,69 @@ static NSString* getPropertyType(objc_property_t property) {
     
     [entityClass properties:propertyNames propertyTypes:propertyTypes];
 
+    int columnCount = [resultSet columnCount];
+    NSMutableSet* resultColumnSet = [[NSMutableSet alloc] initWithCapacity:columnCount];
+    for (int i = 0;i < columnCount;i++) {
+        [resultColumnSet addObject:[resultSet columnNameForIndex:i]];
+    }
+    
     NSUInteger propertyCount = propertyNames.count;
     for (NSUInteger i = 0;i < propertyCount;i++) {
         NSString* propName = [propertyNames objectAtIndex:i];
         NSString* propType = [propertyTypes objectAtIndex:i];
         NSString* columnName = [entityClass convertPropertyToColumnName:propName];
-        
-        id returnValue = [self convertColumnToPropertyValue:resultSet propertyName:propName propertyType:propType columnName:columnName];
-        [self setValue:returnValue forKey:propName];
+
+        if ([resultColumnSet member:columnName]) {
+            id returnValue = [self convertColumnToPropertyValue:resultSet propertyName:propName propertyType:propType columnName:columnName];
+            [self setValue:returnValue forKey:propName];
+        }
     }
 }
 
 - (id) convertColumnToPropertyValue:(FMResultSet*) resultSet propertyName:(NSString*)propertyName propertyType:(NSString*)propertyType columnName:(NSString*)columnName
 {
-    if ([@"NSString" isEqualToString:propertyType]) {
+    if ([PROPERTY_TYPE_CLASS_NSString isEqualToString:propertyType]) {
         return [resultSet stringForColumn:columnName];
-    } else if ([@"i" isEqualToString:propertyType] ||
-               [@"s" isEqualToString:propertyType] ||
-               [@"c" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_INT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_SHORT isEqualToString:propertyType] ||
+               [PROPERTY_TYPE_CHAR isEqualToString:propertyType]) {
         return [NSNumber numberWithInt:[resultSet intForColumn:columnName]];
-    } else if ([@"l" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_LONG isEqualToString:propertyType]) {
         return [NSNumber numberWithLong:[resultSet longForColumn:columnName]];
-    } else if ([@"q" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_LONG_LONG isEqualToString:propertyType]) {
         return [NSNumber numberWithLongLong:[resultSet longLongIntForColumn:columnName]];
-    } else if ([@"C" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_UNSIGNED_CHAR isEqualToString:propertyType]) {
         return [NSNumber numberWithUnsignedChar:[resultSet intForColumn:columnName]];
-    } else if ([@"I" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_UNSIGNED_INT isEqualToString:propertyType]) {
         return [NSNumber numberWithUnsignedInt:[resultSet intForColumn:columnName]];
-    } else if ([@"S" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_UNSIGNED_SHORT isEqualToString:propertyType]) {
         return [NSNumber numberWithUnsignedShort:[resultSet intForColumn:columnName]];
-    } else if ([@"L" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_UNSIGNED_LONG isEqualToString:propertyType]) {
 #ifdef FMDB_UNSIGNED_LONG_LONG_INT_FOR_COLUMN
         return [NSNumber numberWithUnsignedLong:[resultSet unsignedLongLongIntForColumn:columnName]];
 #else
         return [NSNumber numberWithUnsignedLong:[resultSet longLongIntForColumn:columnName]];
 #endif
-    } else if ([@"Q" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_UNSIGNED_LONG_LONG isEqualToString:propertyType]) {
 #ifdef FMDB_UNSIGNED_LONG_LONG_INT_FOR_COLUMN
         return [NSNumber numberWithUnsignedLongLong:[resultSet unsignedLongLongIntForColumn:columnName]];
 #else
         return [NSNumber numberWithUnsignedLongLong:[resultSet longLongIntForColumn:columnName]];
 #endif
-    } else if ([@"f" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_FLOAT isEqualToString:propertyType]) {
         return [NSNumber numberWithDouble:[resultSet doubleForColumn:columnName]];
-    } else if ([@"d" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_DOUBLE isEqualToString:propertyType]) {
         return [NSNumber numberWithDouble:[resultSet doubleForColumn:columnName]];
-    } else if ([@"B" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_BOOL isEqualToString:propertyType]) {
         return [NSNumber numberWithBool:[resultSet boolForColumn:columnName]];
-    } else if ([@"NSDate" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_CLASS_NSDate isEqualToString:propertyType]) {
         return [resultSet dateForColumn:columnName];
-    } else if ([@"NSData" isEqualToString:propertyType]) {
+    } else if ([PROPERTY_TYPE_CLASS_NSData isEqualToString:propertyType]) {
         return [resultSet dataForColumn:columnName];
     } else {
-        return [self convertColumnToExtendedPropertyValue:resultSet propertyName:propertyName propertyType:propertyType columnName:columnName];
+        return nil;
     }
 }
 
-- (id) convertColumnToExtendedPropertyValue:(FMResultSet*) resultSet propertyName:(NSString*)propertyName propertyType:(NSString*)propertyType columnName:(NSString*)columnName
-{
-    LOG(@"*** Unsupported data type is set. class:%@ propertyName:%@(column:%@) type:%@", [self class], propertyName, columnName, propertyType);
-    return nil;
-}
 
 @end

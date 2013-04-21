@@ -257,6 +257,42 @@ static BOOL unprepareIsCalled = FALSE;
 
 
 
+@interface HATestSample5 : HATableEntity {
+@private
+    NSInteger _numValue;
+    NSString* _stringValue;
+}
+
++ (NSString*) tableName;
+
+@property(readonly) NSInteger numValue;
+@property NSString* stringValue;
+
+- (void)resetValues:(NSInteger)newNumValue newStringValue:(NSString*)newStringValue;
+
+@end
+
+@implementation HATestSample5
+
+@synthesize numValue = _numValue;
+@synthesize stringValue = _stringValue;
+
++ (NSString*)tableName
+{
+    return @"test_table3";
+}
+
+- (void)resetValues:(NSInteger)newNumValue newStringValue:(NSString*)newStringValue
+{
+    _numValue = newNumValue;
+    _stringValue = newStringValue;
+}
+
+@end
+
+
+
+
 #pragma mark -
 #pragma mark HABaseEntityTest
 
@@ -267,16 +303,23 @@ static BOOL unprepareIsCalled = FALSE;
     [super setUp];
 
     dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HABaseEntityTest.sqlite"];
-    [HAEntityManager instanceForPath:dbFilePath];
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
                                                                           entityClasses:[HATestDataMock class], [HATestSample1 class], [HATestSample3 class], nil];
-    [[HAEntityManager instance] up:2 migratings:migration, nil];
+    [manager up:2 migratings:migration, nil];
+    [manager addEntityClass:[HATestDataMock class]];
+    [manager addEntityClass:[HATestSample1 class]];
+    [manager addEntityClass:[HATestSample2 class]];
+    [manager addEntityClass:[HATestSample3 class]];
+    [manager addEntityClass:[HATestSample3Having class]];
+    [manager addEntityClass:[HATestSample4 class]];
+    [manager addEntityClass:[HATestSample5 class]];
 }
 
 - (void)tearDown
 {
     // Tear-down code here.
-    [[HAEntityManager instance] remove];
+    [[HAEntityManager instanceForPath:dbFilePath] remove];
     
     NSError* error;
     NSFileManager* manager = [NSFileManager defaultManager];
@@ -692,6 +735,33 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEquals(floatProp, data.floatProp, @"Verify property.");
     STAssertEquals(doubleProp, data.doubleProp, @"Verify property.");
     STAssertEquals(boolProp, data.boolProp, @"Verify property.");
+}
+
+- (void)testPropertiesForUpdates
+{
+    NSMutableArray* propertyNames = [NSMutableArray new];
+    NSMutableArray* propertyTypes = [NSMutableArray new];
+    
+    [HATestSample5 propertiesForUpdates:propertyNames propertyTypes:propertyTypes];
+    
+    STAssertEquals((NSUInteger)1, propertyNames.count, @"Verify no updatable property names");
+    STAssertEquals((NSUInteger)1, propertyTypes.count, @"Verify no updatable property types");
+    STAssertEqualObjects(@"stringValue", [propertyNames objectAtIndex:0], @"Verify no updatable property names");
+}
+
+- (void)testPropertiesForReadOnly
+{
+    [self createSample3:1 stringValue:@"foo"];
+    [self createSample3:2 stringValue:@"bar"];
+    
+    NSMutableArray* propertyNames = [NSMutableArray new];
+    NSMutableArray* propertyTypes = [NSMutableArray new];
+    
+    [HATestSample5 propertiesForReadOnly:propertyNames propertyTypes:propertyTypes];
+    
+    STAssertEquals((NSUInteger)1, propertyNames.count, @"Verify no updatable property names");
+    STAssertEquals((NSUInteger)1, propertyTypes.count, @"Verify no updatable property types");
+    STAssertEqualObjects(@"numValue", [propertyNames objectAtIndex:0], @"Verify no updatable property names");
 }
 
 #pragma mark -
@@ -1290,55 +1360,4 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
 }
 
-
-/*
-#pragma mark -
-#pragma mark group_by
-
-- (void)testGroup_by
-{
-    [self createSample3:1 stringValue:@"foo"];
-    [self createSample3:2 stringValue:@"bar"];
-
-    NSUInteger correctResult = 1;
-    NSArray* entities = [HATestSample3Having group_by:nil];
-    STAssertEquals(correctResult, entities.count, @"Verify all entities are returned.");
-    
-    NSInteger count = 0;
-    for (HATestSample3Having* sample in entities) {
-        count+=sample.sumValue;
-    }
-    
-    // prepareEntity is called when creating table. So
-    STAssertEquals(3, count, @"Verify sum.");
-}
-
-- (void)testGroup_byWithParamStringOnly
-{
-    [self createSample3:1 stringValue:@"foo"];
-    [self createSample3:2 stringValue:@"foo"];
-
-    NSUInteger correctResult = 1;
-    NSArray* entities = [HATestSample3Having group_by:@"stringValue HAVING sum(numValue) > 0"];
-    HATestSample3Having* sample = [entities objectAtIndex:0];
-    STAssertEquals(correctResult, entities.count, @"Verify all entities are returned.");
-    STAssertEquals(3, sample.sumValue, @"Verify stored value.");
-}
-
-- (void)testGroup_byWithOneParam
-{
-    [self createSample3:1 stringValue:@"foo"];
-    [self createSample3:2 stringValue:@"foo"];
-    
-    NSUInteger correctResult = 1;
-    NSMutableArray* entities = [NSMutableArray new];
-    
-    [HATestSample3Having group_by:^(id entity, BOOL *stop) {
-        [entities addObject:entity];
-    } group_by:@"stringValue HAVING sum(numValue) > ?" params:[NSNumber numberWithInt:0], nil];
-    HATestSample3Having* sample = [entities objectAtIndex:0];
-    STAssertEquals(correctResult, entities.count, @"Verify all entities are returned.");
-    STAssertEquals(3, sample.sumValue, @"Verify stored value.");
-}
-*/
 @end

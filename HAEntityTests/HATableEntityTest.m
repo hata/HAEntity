@@ -9,6 +9,7 @@
 #import "HATableEntityTest.h"
 #import "HAEntityManager.h"
 #import "HATableEntityMigration.h"
+#import "HASQLMigration.h"
 #import "HATableEntity.h"
 
 
@@ -46,6 +47,73 @@
 @end
 
 
+
+
+@interface HATableEntityTestSample2 : HATableEntity {
+
+    NSInteger _numValue;
+    NSString* stringValue;
+}
+
+@property(readonly) NSInteger numValue;
+@property NSString* stringValue;
+
+
+- (void)resetValues:(NSInteger)newNumValue newStringValue:(NSString*)newStringValue;
+@end
+
+@implementation HATableEntityTestSample2
+
++ (NSString*) tableName {
+    return @"table_sample1";
+}
+
+@synthesize numValue = _numValue;
+@synthesize stringValue;
+
+
+- (void)resetValues:(NSInteger)newNumValue newStringValue:(NSString*)newStringValue
+{
+    _numValue = newNumValue;
+    stringValue = newStringValue;
+}
+
+@end
+
+@interface HATableEntityTestSample3 : HATableEntity {
+@private
+    NSInteger numValue;
+    NSString* stringValue;
+}
+
+@property(readonly) NSInteger numValue;
+@property NSString* stringValue;
+
+
+- (void)resetValues:(NSInteger)newNumValue newStringValue:(NSString*)newStringValue;
+@end
+
+@implementation HATableEntityTestSample3
+
++ (NSString*) tableName {
+    return @"table_sample3";
+}
+
+@synthesize numValue;
+@synthesize stringValue;
+
+
+- (void)resetValues:(NSInteger)newNumValue newStringValue:(NSString*)newStringValue
+{
+    numValue = newNumValue;
+    stringValue = newStringValue;
+}
+
+@end
+
+
+
+
 @implementation HATableEntityTest
 
 - (void)setUp
@@ -56,14 +124,18 @@
     [HAEntityManager instanceForPath:dbFilePath];
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
                                                                           entityClasses:[HATableEntityTestSample1 class], nil];
-    [[HAEntityManager instance] up:2 migratings:migration, nil];
+    HASQLMigration* migration2 = [[HASQLMigration alloc] initWithVersion:1];
+    [migration2 addSQL:@"CREATE TABLE table_sample3(numValue INTEGER PRIMARY KEY, stringValue TEXT);" downSQL:nil];
+    [[HAEntityManager instanceForPath:dbFilePath] up:2 migratings:migration, migration2, nil];
     [[HAEntityManager instanceForPath:dbFilePath] addEntityClass:[HATableEntityTestSample1 class]];
+    [[HAEntityManager instanceForPath:dbFilePath] addEntityClass:[HATableEntityTestSample3 class]];
+    
 }
 
 - (void)tearDown
 {
     // Tear-down code here.
-    [[HAEntityManager instance] remove];
+    [[HAEntityManager instanceForPath:dbFilePath] remove];
     
     NSError* error;
     NSFileManager* manager = [NSFileManager defaultManager];
@@ -221,6 +293,81 @@
     STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stringValue is updated.");
     STAssertEquals(10, sample.numValue, @"Verify numValue is updated.");
 }
+
+
+- (void)testSaveWithReadOnlyProperty
+{
+    HATableEntityTestSample1* sample1 = [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    HATableEntityTestSample2* sample2 = [HATableEntityTestSample2 find_by_rowid:sample1.rowid];
+    
+    STAssertEquals(sample2.rowid, sample1.rowid, @"Verify rowid.");
+    STAssertEquals(1, sample2.numValue, @"Verify data is read.");
+    STAssertEqualObjects(@"foo", sample2.stringValue, @"Verify data is read.");
+    
+    sample2.stringValue = @"bar";
+    [sample2 save];
+    
+    HATableEntityTestSample2* sampleB = [HATableEntityTestSample2 find_by_rowid:sample1.rowid];
+    STAssertEquals(1, sampleB.numValue, @"Verify data is read.");
+    STAssertEqualObjects(@"bar", sampleB.stringValue, @"Verify data is updated.");
+}
+
+- (void)testSaveDontChangeReadonlyValue
+{
+    HATableEntityTestSample1* sample1 = [HATableEntityTestSample1 create:1 stringValue:@"foo"];
+    HATableEntityTestSample2* sample2 = [HATableEntityTestSample2 find_by_rowid:sample1.rowid];
+    
+    STAssertEquals(sample2.rowid, sample1.rowid, @"Verify rowid.");
+    STAssertEquals(1, sample2.numValue, @"Verify data is read.");
+    STAssertEqualObjects(@"foo", sample2.stringValue, @"Verify data is read.");
+    
+    [sample2 resetValues:3 newStringValue:@"bar"];
+    [sample2 save];
+    
+    HATableEntityTestSample2* sampleB = [HATableEntityTestSample2 find_by_rowid:sample1.rowid];
+    STAssertEquals(1, sampleB.numValue, @"Verify numValue is not updated.");
+    STAssertEqualObjects(@"bar", sampleB.stringValue, @"Verify stringValue is updated.");
+}
+
+- (void)testSaveInsertShowReadData
+{
+    HATableEntityTestSample3* sample3 = [HATableEntityTestSample3 new];
+    sample3.stringValue = @"foo";
+    [sample3 save];
+    sample3 = [HATableEntityTestSample3 new];
+    sample3.stringValue = @"bar";
+    [sample3 save];
+    
+    HATableEntityTestSample3* sample3b = [HATableEntityTestSample3 find_by_rowid:sample3.rowid];
+    
+    //[sample3 reload];
+    
+    STAssertTrue(sample3.numValue != 0, @"Verify numValue is set after save. find result for numValue is %d", sample3b.numValue);
+    STAssertTrue(sample3.rowid != 0, @"Verify rowid is set after save.");
+}
+
+- (void)testReload
+{
+    [HAEntityManager trace:HAEntityManagerTraceLevelDebug block:^(){
+    HATableEntityTestSample3* sample3 = [HATableEntityTestSample3 new];
+    sample3.stringValue = @"foo";
+    [sample3 save];
+
+    HATableEntityTestSample3* sample3b = [HATableEntityTestSample3 find_by_rowid:sample3.rowid];
+    sample3b.stringValue = @"bar";
+    [sample3b save];
+
+    sample3b = [HATableEntityTestSample3 find_by_rowid:sample3.rowid];
+    STAssertEqualObjects(@"bar", sample3b.stringValue, @"Verify stringValue is updated. %lld", sample3.rowid);
+    
+    [sample3 reload];
+
+    STAssertEqualObjects(@"bar", sample3.stringValue, @"Verify reload load a new value.");
+    }];
+    
+}
+
+
 
 
 
