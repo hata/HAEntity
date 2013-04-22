@@ -20,7 +20,7 @@
 #import "HAEntityMigrating.h"
 
 #ifdef DEBUG
-# define LOG(...) NSLog(__VA_ARGS__)
+# define HA_LOG(...) NSLog(__VA_ARGS__)
 
 # define HA_ENTITY_ERROR(...) do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelError])  { NSLog(__VA_ARGS__); } } while(0)
 # define HA_ENTITY_WARN(...)  do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelWarning]){ NSLog(__VA_ARGS__); } } while(0)

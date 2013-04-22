@@ -296,7 +296,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         [insertSQL appendFormat:@") VALUES %@;", params];
         
         if (firstColumn) {
-            LOG(@"WARNING: There is no column to insert data. SQL is %@", insertSQL);
+            HA_LOG(@"WARNING: There is no column to insert data. SQL is %@", insertSQL);
         }
         
         // insert.

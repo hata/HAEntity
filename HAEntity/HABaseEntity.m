@@ -331,7 +331,7 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
     }
     
     if (paramCount) {
-        LOG(@"WARNING: parameter count is incorrect. where:%@ additional params are %d params.", condition, paramCount);
+        HA_LOG(@"WARNING: parameter count is incorrect. where:%@ additional params are %d params.", condition, paramCount);
     }
     
     return paramList;

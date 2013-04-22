@@ -158,7 +158,7 @@ static NSMutableArray* _managerInstances = nil;
         }
         
         if (error) {
-            LOG(@"It failed to delete %@ because of error:%@", _dbFilePath, error);
+            HA_LOG(@"It failed to delete %@ because of error:%@", _dbFilePath, error);
         }
         
         _dbFilePath = nil;
@@ -201,7 +201,7 @@ static NSMutableArray* _managerInstances = nil;
             }
             @catch (NSException *exception) {
                 // TODO: Handle error.
-                LOG(@"Exception is thrown while using inDatabase %@", exception);
+                HA_LOG(@"Exception is thrown while using inDatabase %@", exception);
             }
             @finally {
             }
@@ -223,7 +223,7 @@ static NSMutableArray* _managerInstances = nil;
             }
             @catch (NSException *exception) {
                 // TODO: Handle error.
-                LOG(@"exception is thrown while running transaction. %@", exception);
+                HA_LOG(@"exception is thrown while running transaction. %@", exception);
                 *rollback = TRUE;
             }
             @finally {
