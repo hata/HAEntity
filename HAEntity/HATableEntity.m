@@ -236,18 +236,17 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
                                        [readonlyPropertyNames componentsJoinedByString:@", "],
                                        [entityClass tableName],
                                        ROW_ID_COLUMN_NAME];
-        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-            LOG(@"HATableEntity::HA_updateReadonlyProperties executeQuery:'%@' withArray: %@", selectReadonlySQL, params);
-        }
+        
+        HA_ENTITY_FINE(@"HATableEntity::HA_updateReadonlyProperties executeQuery:'%@' withArray: %@", selectReadonlySQL, params);
+
         FMResultSet* resultSet = [db executeQuery:selectReadonlySQL withArgumentsInArray:params];
-        [resultSet next];
+        
+        HA_ENTITY_FINE(@"HATableEntity::HA_updateReadonlyProperties last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
 
-        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-            LOG(@"HATableEntity::HA_updateReadonlyProperties last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
+        if ([resultSet next]) {
+            [self setResultSetToProperties:resultSet];
+            [resultSet close];
         }
-
-        [self setResultSetToProperties:resultSet];
-        [resultSet close];
     }
 }
 
@@ -302,28 +301,17 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         
         // insert.
         [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
-            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-                LOG(@"HATableEntity::save insertSQL:'%@' withArray: %@", insertSQL, values);
-            }
+            
+            HA_ENTITY_FINE(@"HATableEntity::save insertSQL:'%@' withArray: %@", insertSQL, values);
 
             result = [db executeUpdate:insertSQL withArgumentsInArray:values];
 
-            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-                LOG(@"HATableEntity::save after insertSQL last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
-            }
+            HA_ENTITY_FINE(@"HATableEntity::save after insertSQL last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
 
             _rowid = [db lastInsertRowId];
             _isNew = FALSE;
 
-            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-                LOG(@"HATableEntity::save HA_updateReadonlyProperties:'%@' withArray: %@", insertSQL, values);
-            }
-            
             [self HA_updateReadonlyProperties:entityClass database:db rowid:_rowid];
-            
-            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-                LOG(@"HATableEntity::save after HA_updateReadonlyProperties last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
-            }
         }];
 
     } else {
@@ -354,15 +342,12 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         [values addObject:[NSNumber numberWithLongLong:_rowid]];
 
         [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
-            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-                LOG(@"HATableEntity::save updateSQL:'%@' withArray: %@", updateSQL, values);
-            }
+
+            HA_ENTITY_FINE(@"HATableEntity::save updateSQL:'%@' withArray: %@", updateSQL, values);
             
             result = [db executeUpdate:updateSQL withArgumentsInArray:values];
-
-            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-                LOG(@"HATableEntity::save last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
-            }
+            
+            HA_ENTITY_FINE(@"HATableEntity::save last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
         }];
     }
     return result;
@@ -392,10 +377,8 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
     
     [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase *db) {
         FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
-        
-        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-            LOG(@"HATableEntity::reload last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
-        }
+
+        HA_ENTITY_FINE(@"HATableEntity::reload last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
 
         while ([results next]) {
             [self setResultSetToProperties:results];

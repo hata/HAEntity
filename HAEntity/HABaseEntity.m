@@ -21,7 +21,6 @@
 #import "HAEntityManager.h"
 #import "HABaseEntity.h"
 
-//#define DEBUG_SHOW_EXECUTE_QUERY_SQL
 
 @implementation HABaseEntity
 
@@ -351,16 +350,11 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
         querySql = [self selectPrefix];
     }
 
-#ifdef DEBUG_SHOW_EXECUTE_QUERY_SQL
-    LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@'", querySql);
-#endif
-
-    if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-        LOG(@"HABaseEntity::HA_executeQuery querySQL:'%@' params:%@", querySql, paramList);
-    }
-
     [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
         BOOL stop = FALSE;
+
+        HA_ENTITY_FINE(@"HABaseEntity::HA_executeQuery querySQL:'%@' params:%@", querySql, paramList);
+
         FMResultSet* results = paramList ? [db executeQuery:querySql withArgumentsInArray:paramList] : [db executeQuery:querySql];
         while ([results next]) {
             id entity = [[self alloc] initWithResultSet:results];
@@ -372,9 +366,7 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
         }
         [results close];
 
-        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine]) {
-            LOG(@"HABaseEntity::HA_executeQuery last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
-        }
+        HA_ENTITY_FINE(@"HABaseEntity::HA_executeQuery last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);
     }];
 }
 

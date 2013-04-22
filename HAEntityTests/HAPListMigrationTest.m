@@ -33,7 +33,7 @@
 - (void)tearDown
 {
     // Tear-down code here.
-    [[HAEntityManager instanceForPath:dbFilePath] remove];
+    [manager remove];
     
     NSError* error;
     NSFileManager* fileManager = [NSFileManager defaultManager];

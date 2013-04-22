@@ -21,8 +21,22 @@
 
 #ifdef DEBUG
 # define LOG(...) NSLog(__VA_ARGS__)
+
+# define HA_ENTITY_ERROR(...) do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelError])  { NSLog(__VA_ARGS__); } } while(0)
+# define HA_ENTITY_WARN(...)  do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelWarning]){ NSLog(__VA_ARGS__); } } while(0)
+# define HA_ENTITY_INFO(...)  do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelInfo])   { NSLog(__VA_ARGS__); } } while(0)
+# define HA_ENTITY_FINE(...)  do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelFine])   { NSLog(__VA_ARGS__); } } while(0)
+# define HA_ENTITY_DEBUG(...) do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelDebug])  { NSLog(__VA_ARGS__); } } while(0)
+
 #else
 # define LOG(...) ;
+
+# define HA_ENTITY_ERROR(...) ;
+# define HA_ENTITY_WARN(...)  ;
+# define HA_ENTITY_INFO(...)  ;
+# define HA_ENTITY_FINE(...)  ;
+# define HA_ENTITY_DEBUG(...) ;
+
 #endif
 
 
@@ -34,7 +48,6 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
     HAEntityManagerTraceLevelWarning,
     HAEntityManagerTraceLevelInfo,
     HAEntityManagerTraceLevelFine,
-    HAEntityManagerTraceLevelFinest,
     HAEntityManagerTraceLevelDebug
 } HAEntityManagerTraceLevel;
 

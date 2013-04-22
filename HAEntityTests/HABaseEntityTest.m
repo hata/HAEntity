@@ -313,15 +313,10 @@ static BOOL unprepareIsCalled = FALSE;
     dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HABaseEntityTest.sqlite"];
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
-                                                                          entityClasses:[HATestDataMock class], [HATestSample1 class], [HATestSample3 class], nil];
-    [manager up:2 migratings:migration, nil];
-    [manager addEntityClass:[HATestDataMock class]];
-    [manager addEntityClass:[HATestSample1 class]];
-    [manager addEntityClass:[HATestSample2 class]];
-    [manager addEntityClass:[HATestSample3 class]];
-    [manager addEntityClass:[HATestSample3Having class]];
-    [manager addEntityClass:[HATestSample4 class]];
-    [manager addEntityClass:[HATestSample5 class]];
+                                                                          entityClasses:[HATestDataMock class], [HATestSample1 class],
+                                         [HATestSample2 class], [HATestSample3 class], [HATestSample3Having class], [HATestSample4 class],
+                                         [HATestSample5 class], nil];
+    [manager upToHighestVersion:migration, nil];
 }
 
 - (void)tearDown

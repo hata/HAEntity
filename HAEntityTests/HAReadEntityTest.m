@@ -80,10 +80,8 @@
 
     dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HAReadEntityTest.sqlite"];
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
-    HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1 entityClasses:[HAReadEntityTestSample class], nil];
+    HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1 entityClasses:[HAReadEntityTestSample class], [HAReadEntityTestView class], nil];
     [manager upToHighestVersion:migration, nil];
-    [manager addEntityClass:[HAReadEntityTestSample class]];
-    [manager addEntityClass:[HAReadEntityTestView class]];
     
     HAReadEntityTestSample* sample = [HAReadEntityTestSample new];
     sample.numValue = 1;
