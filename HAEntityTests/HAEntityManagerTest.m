@@ -57,16 +57,20 @@
     return self;
 }
 
-- (void) up:(FMDatabase *)db
+- (void) up:(HAEntityManager*)manager database:(FMDatabase *)db
 {
-    upCount = upCount+1;
-    [_upOrder addObject:[NSNumber numberWithInt:_version]];
+    if (manager) {
+        upCount = upCount+1;
+        [_upOrder addObject:[NSNumber numberWithInt:_version]];
+    }
 }
 
-- (void) down:(FMDatabase *)db
+- (void) down:(HAEntityManager*)manager database:(FMDatabase *)db
 {
-    downCount = downCount+1;
-    [_downOrder addObject:[NSNumber numberWithInt:_version]];
+    if (manager) {
+        downCount = downCount+1;
+        [_downOrder addObject:[NSNumber numberWithInt:_version]];
+    }
 }
 
 @end

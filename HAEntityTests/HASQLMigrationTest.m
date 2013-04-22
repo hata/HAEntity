@@ -50,9 +50,9 @@
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
     HASQLMigration* migration = [[HASQLMigration alloc] initWithVersion:3];
-    [migration addSQL:@"CREATE TABLE test_table (numValue NUMERIC);" downSQL:nil];
+    [migration addSQLForEntity:[self class] upSQL:@"CREATE TABLE test_table (numValue NUMERIC);" downSQL:nil];
     [manager accessDatabase:^(FMDatabase *db) {
-        [migration up:db];
+        [migration up:nil database:db];
         [db executeUpdate:@"INSERT INTO test_table(numValue) VALUES(1);"];
         STAssertEquals(0, [db lastErrorCode], [db lastErrorMessage]);
     }];
@@ -63,12 +63,12 @@
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
     HASQLMigration* migration = [[HASQLMigration alloc] initWithVersion:3];
-    [migration addSQL:@"CREATE TABLE test_table (numValue NUMERIC);" downSQL:@"DROP TABLE test_table;"];
+    [migration addSQLForEntity:[self class] upSQL:@"CREATE TABLE test_table (numValue NUMERIC);" downSQL:@"DROP TABLE test_table;"];
     [manager accessDatabase:^(FMDatabase *db) {
-        [migration up:db];
+        [migration up:nil database:db];
         [db executeUpdate:@"INSERT INTO test_table(numValue) VALUES(1);"];
         STAssertEquals(0, [db lastErrorCode], [db lastErrorMessage]);
-        [migration down:db];
+        [migration down:nil database:db];
         [db executeUpdate:@"INSERT INTO test_table(numValue) VALUES(1);"];
         // This should be error.
         STAssertEquals(1, [db lastErrorCode], [db lastErrorMessage]);

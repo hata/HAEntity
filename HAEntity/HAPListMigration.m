@@ -20,14 +20,13 @@
 - (void) addPropertyList:(NSString*)pListPath
 {
     NSDictionary* dict = [NSDictionary dictionaryWithContentsOfFile:pListPath];
-    NSLog(@"***** read data ...%@ %@", pListPath, dict);
     [dict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         NSString* keyString = key;
 
         if ([keyString length] >= 2 && [[[keyString substringToIndex:2] lowercaseString] isEqualToString:@"up"]) {
-            [self addSQL:obj downSQL:nil];
+            [self addSQLForEntity:nil upSQL:obj downSQL:nil];
         } else if ([keyString length] >= 4 && [[[keyString substringToIndex:4] lowercaseString] isEqualToString:@"down"]) {
-            [self addSQL:nil downSQL:obj];
+            [self addSQLForEntity:nil upSQL:nil downSQL:obj];
         }
     }];
 }

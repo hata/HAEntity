@@ -16,13 +16,14 @@
 {
     if (self = [super init]) {
         _version = version;
-        _upSQLList = [NSMutableArray new];
-        _downSQLList = [NSMutableArray new];
+        _upSQLList = NSMutableArray.new;
+        _downSQLList = NSMutableArray.new;
+        _entityClasses = NSMutableArray.new;
     }
     return self;
 }
 
-- (void) addSQL:(NSString*)upSQL downSQL:(NSString*)downSQL
+- (void) addSQLForEntity:(Class)entityClass upSQL:(NSString*)upSQL downSQL:(NSString*)downSQL
 {
     if (upSQL) {
         [_upSQLList addObject:upSQL];
@@ -30,19 +31,31 @@
     if (downSQL) {
         [_downSQLList insertObject:downSQL atIndex:0];
     }
+
+    if (entityClass) {
+        [_entityClasses addObject:entityClass];
+    }
 }
 
-- (void) up:(FMDatabase*)db
+- (void) up:(HAEntityManager*)manager database:(FMDatabase*)db
 {
     for (NSString* sql in _upSQLList) {
         [db executeUpdate:sql];
     }
+    
+    for (Class clazz in _entityClasses) {
+        [manager addEntityClass:clazz];
+    }
 }
 
-- (void) down:(FMDatabase*)db
+- (void) down:(HAEntityManager*)manager database:(FMDatabase*)db
 {
     for (NSString* sql in _downSQLList) {
         [db executeUpdate:sql];
+    }
+
+    for (Class clazz in _entityClasses) {
+        [manager removeEntityClass:clazz];
     }
 }
 

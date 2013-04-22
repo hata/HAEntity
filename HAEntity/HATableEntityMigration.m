@@ -13,6 +13,7 @@
 
 @synthesize version = _version;
 
+
 - (id) initWithVersion:(NSInteger)version entityClasses:(Class)entityClass, ...
 {
     if (self = [super init]) {
@@ -33,16 +34,18 @@
     return self;
 }
 
-- (void) up:(FMDatabase*)db
+- (void) up:(HAEntityManager*)manager database:(FMDatabase*)db
 {
     for (Class clazz in _classes) {
         [db executeUpdate:[self createTableSQL:clazz]];
+        [manager addEntityClass:clazz];
     }
 }
 
-- (void) down:(FMDatabase*)db
+- (void) down:(HAEntityManager*)manager database:(FMDatabase*)db
 {
     for (Class clazz in _classes) {
+        [manager removeEntityClass:clazz];
         [db executeUpdate:[self dropTableSQL:clazz]];
     }
 }

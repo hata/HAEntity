@@ -16,6 +16,9 @@
 #endif
 
 
+
+@protocol HAEntityMigrating;
+
 typedef enum HAEntityManagerTraceLevel : NSInteger {
     HAEntityManagerTraceLevelError = 1,
     HAEntityManagerTraceLevelWarning,
@@ -153,6 +156,7 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
  */
 - (void) removeEntityClass:(Class) entityClass;
 
+- (BOOL) isAddedEntityClass:(Class)entityClass;
 
 /**
  * migrate to higher version.

@@ -8,11 +8,14 @@
 
 #import <Foundation/Foundation.h>
 #import "FMDatabase.h"
+#import "HAEntityManager.h"
+
+@class HAEntityManager;
 
 @protocol HAEntityMigrating <NSObject>
 @required
-- (void) up:(FMDatabase*)db;
-- (void) down:(FMDatabase*)db;
+- (void) up:(HAEntityManager*)manager database:(FMDatabase*)db;
+- (void) down:(HAEntityManager*)manager database:(FMDatabase*)db;
 
 @property (readonly) NSInteger version;
 

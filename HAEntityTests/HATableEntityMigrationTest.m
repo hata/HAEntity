@@ -32,6 +32,40 @@
 
 @end
 
+
+@interface HAEntityManagerMock : HAEntityManager {
+    NSMutableSet* testAddedClasses;
+}
+
+- (void) addEntityClass:(Class) entityClass;
+
+
+@end
+
+
+@implementation HAEntityManagerMock
+
+- (void) addEntityClass:(Class) entityClass
+{
+    if (!testAddedClasses) {
+        testAddedClasses = NSMutableSet.new;
+    }
+    [testAddedClasses addObject:entityClass];
+}
+
+- (void) removeEntityClass:(Class) entityClass
+{
+    [testAddedClasses removeObject:entityClass];
+}
+
+- (BOOL) isAddedMember:(Class)entityClass
+{
+    return [testAddedClasses member:entityClass] != nil;
+}
+
+@end
+
+
 @implementation HATableEntityMigrationTest
 
 - (void)setUp
@@ -67,21 +101,24 @@
 
 - (void)testUpAndDown
 {
+    HAEntityManagerMock* manager = HAEntityManagerMock.new;
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1 entityClasses:[HATableEntityMigrationSample class], nil];
     FMDatabase* db = [FMDatabase databaseWithPath:dbFilePath];
     [db open];
-    [migration up:db];
+    [migration up:manager database:db];
     FMResultSet* rset = [db executeQuery:@"SELECT stringValue FROM sample_table"];
     [db close];
 
     STAssertNotNil(rset, @"Verify query finished successfully.");
+    STAssertTrue([manager isAddedMember:[HATableEntityMigrationSample class]], @"Verify entity class is added to HAEntityManager.");
 
     [db open];
-    [migration down:db];
+    [migration down:manager database:db];
     rset = [db executeQuery:@"SELECT stringValue FROM sample_table"];
     [db close];
 
     STAssertNil(rset, @"Verify table is dropped.");
+    STAssertFalse([manager isAddedMember:[HATableEntityMigrationSample class]], @"Verify entity class is removed from HAEntityManager.");
 }
 
 @end

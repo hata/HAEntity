@@ -15,9 +15,10 @@
     NSMutableArray* _classes;
 }
 
+
 - (id) initWithVersion:(NSInteger)version entityClasses:(Class)entityClass, ... NS_REQUIRES_NIL_TERMINATION;
 
-- (void) up:(FMDatabase*)db;
-- (void) down:(FMDatabase*)db;
+- (void) up:(HAEntityManager*)manager database:(FMDatabase*)db;
+- (void) down:(HAEntityManager*)manager database:(FMDatabase*)db;
 
 @end

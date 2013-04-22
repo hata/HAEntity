@@ -18,13 +18,14 @@
     NSInteger _version;
     NSMutableArray* _upSQLList;
     NSMutableArray* _downSQLList;
+    NSMutableArray* _entityClasses;
 }
 
 - (id) initWithVersion:(NSInteger)version;
 
-- (void) addSQL:(NSString*)upSQL downSQL:(NSString*)downSQL;
+- (void) addSQLForEntity:(Class)entityClass upSQL:(NSString*)upSQL downSQL:(NSString*)downSQL;
 
-- (void) up:(FMDatabase*)db;
-- (void) down:(FMDatabase*)db;
+- (void) up:(HAEntityManager*)manager database:(FMDatabase*)db;
+- (void) down:(HAEntityManager*)manager database:(FMDatabase*)db;
 
 @end

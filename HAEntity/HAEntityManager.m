@@ -305,7 +305,7 @@ static NSMutableArray* _managerInstances = nil;
                 // skip.
             } else if (sortedMigrating.version <= toVersion) {
                 [self accessDatabase:^(FMDatabase *db) {
-                    [obj up:db];
+                    [obj up:self database:db];
                 }];
             } else {
                 *stop = TRUE;
@@ -315,7 +315,7 @@ static NSMutableArray* _managerInstances = nil;
                 // skip.
             } else if (sortedMigrating.version > toVersion) {
                 [self accessDatabase:^(FMDatabase *db) {
-                    [obj down:db];
+                    [obj down:self database:db];
                 }];
             } else {
                 *stop = TRUE;
