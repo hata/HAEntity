@@ -65,6 +65,7 @@
 		4B291F531719CEC500226D8C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		4B291F5B1719CEC500226D8C /* HAEntityTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HAEntityTests-Info.plist"; sourceTree = "<group>"; };
 		4B291F5D1719CEC500226D8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		4B3076B0172E0B0900FC4E55 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
 		4B41D23117223603006248DA /* HAReadEntityTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAReadEntityTest.h; sourceTree = "<group>"; };
 		4B41D23217223603006248DA /* HAReadEntityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAReadEntityTest.m; sourceTree = "<group>"; };
 		4B41D23417225E63006248DA /* HASQLMigration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HASQLMigration.h; sourceTree = "<group>"; };
@@ -186,6 +187,7 @@
 		4B291F451719CEC500226D8C /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				4B3076B0172E0B0900FC4E55 /* README.md */,
 				4B291F461719CEC500226D8C /* HAEntity-Prefix.pch */,
 			);
 			name = "Supporting Files";
