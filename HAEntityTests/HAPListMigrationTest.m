@@ -66,7 +66,7 @@
     }
 
     [migration addPropertyList:path];
-    [manager accessDatabase:^(FMDatabase *db) {
+    [manager inDatabase:^(FMDatabase *db) {
         [migration up:nil database:db];
         [db executeUpdate:@"INSERT INTO test_table(numValue) VALUES(1);"];
         STAssertEquals(0, [db lastErrorCode], [db lastErrorMessage]);

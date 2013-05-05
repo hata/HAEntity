@@ -141,7 +141,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
       [NSString stringWithFormat:@"DELETE FROM %@", [self tableName]];
     __block BOOL result = FALSE;
     
-    [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase* db) {
+    [[HAEntityManager instanceForEntity:self] inDatabase:^(FMDatabase* db) {
         if (params) {
             NSArray* paramList = [self convertListToArray:where firstParam:params list:args];
             result = [db executeUpdate:deleteSQL withArgumentsInArray:paramList];
@@ -300,7 +300,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         }
         
         // insert.
-        [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
+        [[HAEntityManager instanceForEntity:entityClass] inDatabase:^(FMDatabase* db){
             
             HA_ENTITY_FINE(@"HATableEntity::save insertSQL:'%@' withArray: %@", insertSQL, values);
 
@@ -341,7 +341,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         [updateSQL appendFormat:@" WHERE %@ = ?", ROW_ID_COLUMN_NAME];
         [values addObject:[NSNumber numberWithLongLong:_rowid]];
 
-        [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
+        [[HAEntityManager instanceForEntity:entityClass] inDatabase:^(FMDatabase* db){
 
             HA_ENTITY_FINE(@"HATableEntity::save updateSQL:'%@' withArray: %@", updateSQL, values);
             
@@ -361,7 +361,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
         // delete
         Class entityClass = [self class];
         NSString* deleteSQL = [NSString stringWithFormat:@"DELETE FROM %@ where %@ = ?", [entityClass tableName], ROW_ID_COLUMN_NAME];
-        [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase* db){
+        [[HAEntityManager instanceForEntity:entityClass] inDatabase:^(FMDatabase* db){
             result = [db executeUpdate:deleteSQL, [NSNumber numberWithInt:_rowid]];
         }];
     }
@@ -375,7 +375,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
     NSArray* paramList = [NSArray arrayWithObject:[NSNumber numberWithLongLong:_rowid]];
     __block BOOL propertyIsLoad = FALSE;
     
-    [[HAEntityManager instanceForEntity:entityClass] accessDatabase:^(FMDatabase *db) {
+    [[HAEntityManager instanceForEntity:entityClass] inDatabase:^(FMDatabase *db) {
         FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
 
         HA_ENTITY_FINE(@"HATableEntity::reload last_error_code:%d message:%@", [db lastErrorCode], [db lastErrorMessage]);

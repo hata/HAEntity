@@ -148,7 +148,7 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
  * Otherwise, it is called in inDatabase.
  * @param block is called with FMDatabase instance.
  */
-- (void) accessDatabase:(void (^)(FMDatabase *db))block;
+- (void) inDatabase:(void (^)(FMDatabase *db))block;
 
 
 /**
@@ -162,7 +162,7 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
  * if *rollback = TRUE is called, it is set to inTransaction's rollback
  * parameter and will be handled as rollback.
  */
-- (void) transaction:(void (^)(FMDatabase *db, BOOL *rollback))block;
+- (void) inTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block;
 
 
 /**

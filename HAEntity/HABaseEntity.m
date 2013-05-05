@@ -350,7 +350,7 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
         querySql = [self selectPrefix];
     }
 
-    [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
+    [[HAEntityManager instanceForEntity:self] inDatabase:^(FMDatabase *db) {
         BOOL stop = FALSE;
 
         HA_ENTITY_FINE(@"HABaseEntity::HA_executeQuery querySQL:'%@' params:%@", querySql, paramList);
@@ -424,7 +424,7 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
         querySql = [self selectPrefix];
     }
 
-    [[HAEntityManager instanceForEntity:self] accessDatabase:^(FMDatabase *db) {
+    [[HAEntityManager instanceForEntity:self] inDatabase:^(FMDatabase *db) {
         BOOL stop = FALSE;
         FMResultSet* results = [db executeQuery:querySql withArgumentsInArray:paramList];
         while ([results next]) {

@@ -207,7 +207,7 @@
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
 
     __block BOOL result = FALSE;
-    [manager accessDatabase:^(FMDatabase *db) {
+    [manager inDatabase:^(FMDatabase *db) {
         result = [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
     }];
     
@@ -220,7 +220,7 @@
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
     __block BOOL result = FALSE;
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         result = [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
         result &= [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
     }];
@@ -233,19 +233,19 @@
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
     }];
 
     __block BOOL result = FALSE;
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         result = [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
         *rollback = ![db executeUpdate:@"INSERT INTO test_not_found(not_found_column) VALUES (?);", [NSNumber numberWithInt:2]];
     }];
     
     STAssertTrue(result, @"Verify first insert should work well.");
     
-    [manager accessDatabase:^(FMDatabase *db) {
+    [manager inDatabase:^(FMDatabase *db) {
         FMResultSet* rset = [db executeQuery:@"SELECT * FROM test;"];
         result = [rset next];
     }];
@@ -257,13 +257,13 @@
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
     }];
     
     __block BOOL result = FALSE;
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
-        [[HAEntityManager instanceForPath:dbFilePath] accessDatabase:^(FMDatabase *inDB) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
+        [[HAEntityManager instanceForPath:dbFilePath] inDatabase:^(FMDatabase *inDB) {
             result = [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
             *rollback = ![db executeUpdate:@"INSERT INTO test_not_found(not_found_column) VALUES (?);", [NSNumber numberWithInt:2]];
         }];
@@ -271,7 +271,7 @@
     
     STAssertTrue(result, @"Verify first insert should work well.");
     
-    [manager accessDatabase:^(FMDatabase *db) {
+    [manager inDatabase:^(FMDatabase *db) {
         FMResultSet* rset = [db executeQuery:@"SELECT * FROM test;"];
         result = [rset next];
     }];
@@ -283,15 +283,15 @@
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
     }];
     
     __block BOOL result1 = FALSE;
     __block BOOL result2 = FALSE;
-    [manager transaction:^(FMDatabase *db, BOOL* rollback) {
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         result1 = [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
-        [[HAEntityManager instanceForPath:dbFilePath] transaction:^(FMDatabase *db2, BOOL *rollback2) {
+        [[HAEntityManager instanceForPath:dbFilePath] inTransaction:^(FMDatabase *db2, BOOL *rollback2) {
             result2 = TRUE;
             [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:3]];
         }];
@@ -301,7 +301,7 @@
     STAssertFalse(result2, @"Verify 2nd insert should not called.");
     
     __block BOOL result = FALSE;
-    [manager accessDatabase:^(FMDatabase *db) {
+    [manager inDatabase:^(FMDatabase *db) {
         FMResultSet* rset = [db executeQuery:@"SELECT * FROM test;"];
         result = [rset next];
     }];

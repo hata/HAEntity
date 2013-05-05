@@ -187,7 +187,7 @@ static NSMutableArray* _managerInstances = nil;
 }
 
 
-- (void) accessDatabase:(void (^)(FMDatabase *db))block
+- (void) inDatabase:(void (^)(FMDatabase *db))block
 {
     NSMutableDictionary* threadLocal = [[NSThread currentThread] threadDictionary];
     FMDatabase* currentDatabase = [threadLocal objectForKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_IN_TRANS_FMDATABASE];
@@ -210,7 +210,7 @@ static NSMutableArray* _managerInstances = nil;
 }
 
 
-- (void) transaction:(void (^)(FMDatabase *db, BOOL *rollback))block
+- (void) inTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block
 {
     NSMutableDictionary* threadLocal = [[NSThread currentThread] threadDictionary];
     FMDatabase* currentDatabase = [threadLocal objectForKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_IN_TRANS_FMDATABASE];
@@ -312,7 +312,7 @@ static NSMutableArray* _managerInstances = nil;
             if (sortedMigrating.version <= fromVersion) {
                 // skip.
             } else if (sortedMigrating.version <= toVersion) {
-                [self accessDatabase:^(FMDatabase *db) {
+                [self inDatabase:^(FMDatabase *db) {
                     [obj up:self database:db];
                 }];
             } else {
@@ -322,7 +322,7 @@ static NSMutableArray* _managerInstances = nil;
             if (sortedMigrating.version > fromVersion) {
                 // skip.
             } else if (sortedMigrating.version > toVersion) {
-                [self accessDatabase:^(FMDatabase *db) {
+                [self inDatabase:^(FMDatabase *db) {
                     [obj down:self database:db];
                 }];
             } else {
