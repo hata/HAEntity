@@ -21,6 +21,17 @@
 @implementation HATableEntity
 
 NSString* ROW_ID_COLUMN_NAME = @"rowid";
+static NSCache* CACHE_TABLE = nil;
+
++ (void) initialize
+{
+    static BOOL initialized = FALSE;
+    if (!initialized) {
+        initialized = TRUE;
+        CACHE_TABLE = NSCache.new;
+    }
+}
+
 
 @synthesize rowid = _rowid;
 
@@ -91,6 +102,22 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
 
 + (NSString*) selectPrefix
 {
+    NSString* cachePrefix = [CACHE_TABLE objectForKey:self];
+    if (!cachePrefix) {
+        NSMutableString* buffer = [NSMutableString new];
+        [buffer appendFormat:@"SELECT %@", ROW_ID_COLUMN_NAME];
+        
+        for (NSString* column in [self columnNames]) {
+            [buffer appendFormat:@", %@", column];
+        }
+        [buffer appendFormat:@" FROM %@", [self tableName]];
+        
+        [CACHE_TABLE setObject:buffer forKey:[self class]];
+        return buffer;
+    } else {
+        return cachePrefix;
+    }
+/*
     NSMutableString* buffer = [NSMutableString new];
     [buffer appendFormat:@"SELECT %@", ROW_ID_COLUMN_NAME];
     
@@ -99,7 +126,7 @@ NSString* ROW_ID_COLUMN_NAME = @"rowid";
     }
     [buffer appendFormat:@" FROM %@", [self tableName]];
 
-    return buffer;
+    return buffer;*/
 }
 
 + (id) find_by_rowid:(sqlite_int64)rowid

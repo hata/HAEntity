@@ -14,6 +14,7 @@
 		4B291F551719CEC500226D8C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F421719CEC500226D8C /* Foundation.framework */; };
 		4B291F581719CEC500226D8C /* libHAEntity.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F3F1719CEC500226D8C /* libHAEntity.a */; };
 		4B291F5E1719CEC500226D8C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4B291F5C1719CEC500226D8C /* InfoPlist.strings */; };
+		4B3076BF1736D05300FC4E55 /* HAEntityPerfTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */; };
 		4B41D23317223603006248DA /* HAReadEntityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23217223603006248DA /* HAReadEntityTest.m */; };
 		4B41D23617225E63006248DA /* HASQLMigration.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23517225E63006248DA /* HASQLMigration.m */; };
 		4B41D2391722648B006248DA /* HASQLMigrationTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D2381722648B006248DA /* HASQLMigrationTest.m */; };
@@ -66,6 +67,8 @@
 		4B291F5B1719CEC500226D8C /* HAEntityTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HAEntityTests-Info.plist"; sourceTree = "<group>"; };
 		4B291F5D1719CEC500226D8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4B3076B0172E0B0900FC4E55 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
+		4B3076BD1736D05300FC4E55 /* HAEntityPerfTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityPerfTest.h; sourceTree = "<group>"; };
+		4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityPerfTest.m; sourceTree = "<group>"; };
 		4B41D23117223603006248DA /* HAReadEntityTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAReadEntityTest.h; sourceTree = "<group>"; };
 		4B41D23217223603006248DA /* HAReadEntityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAReadEntityTest.m; sourceTree = "<group>"; };
 		4B41D23417225E63006248DA /* HASQLMigration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HASQLMigration.h; sourceTree = "<group>"; };
@@ -210,6 +213,8 @@
 				4B41D2381722648B006248DA /* HASQLMigrationTest.m */,
 				4B41D23F17227AA3006248DA /* HAPListMigrationTest.h */,
 				4B41D24017227AA3006248DA /* HAPListMigrationTest.m */,
+				4B3076BD1736D05300FC4E55 /* HAEntityPerfTest.h */,
+				4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */,
 				4BBC68F71719D93A008D1775 /* libPods.a */,
 				4B291F5A1719CEC500226D8C /* Supporting Files */,
 			);
@@ -376,6 +381,7 @@
 				4B41D23317223603006248DA /* HAReadEntityTest.m in Sources */,
 				4B41D2391722648B006248DA /* HASQLMigrationTest.m in Sources */,
 				4B41D24117227AA3006248DA /* HAPListMigrationTest.m in Sources */,
+				4B3076BF1736D05300FC4E55 /* HAEntityPerfTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
