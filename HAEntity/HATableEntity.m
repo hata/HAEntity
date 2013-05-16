@@ -106,9 +106,8 @@ static NSCache* CACHE_TABLE = nil;
     if (!cachePrefix) {
         NSMutableString* buffer = [NSMutableString new];
         [buffer appendFormat:@"SELECT %@", ROW_ID_COLUMN_NAME];
-        
-        for (NSString* column in [self columnNames]) {
-            [buffer appendFormat:@", %@", column];
+        for (HAEntityPropertyInfo* info in [HAEntityPropertyInfo propertyInfoList:self]) {
+            [buffer appendFormat:@", %@", info.columnName];
         }
         [buffer appendFormat:@" FROM %@", [self tableName]];
         
@@ -117,16 +116,6 @@ static NSCache* CACHE_TABLE = nil;
     } else {
         return cachePrefix;
     }
-/*
-    NSMutableString* buffer = [NSMutableString new];
-    [buffer appendFormat:@"SELECT %@", ROW_ID_COLUMN_NAME];
-    
-    for (NSString* column in [self columnNames]) {
-        [buffer appendFormat:@", %@", column];
-    }
-    [buffer appendFormat:@" FROM %@", [self tableName]];
-
-    return buffer;*/
 }
 
 + (id) find_by_rowid:(sqlite_int64)rowid
@@ -216,51 +205,55 @@ static NSCache* CACHE_TABLE = nil;
 }
 
 
-- (void) HA_someOfUpdatingProperties:(Class)entityClass propertyNames:(NSMutableArray*)propertyNames
-                       propertyTypes:(NSMutableArray*)propertyTypes properties:(NSString*)properties list:(va_list)args
+// NSArray for HAEntityPropertyInfo
+- (NSArray*) HA_someOfUpdatingProperties:(Class)entityClass properties:(NSString*)properties list:(va_list)args
 {
     if (properties) {
-        NSMutableArray* savedPropNameList = [NSMutableArray new];
-        NSMutableArray* savedPropTypeList = [NSMutableArray new];
-        [entityClass properties:savedPropNameList propertyTypes:savedPropTypeList];
-        NSUInteger propCount = savedPropNameList.count;
-        
-        for (NSUInteger i = 0;i < propCount;i++) {
-            if ([properties isEqualToString:[savedPropNameList objectAtIndex:i]]) {
-                [propertyNames addObject:[savedPropNameList objectAtIndex:i]];
-                [propertyTypes addObject:[savedPropTypeList objectAtIndex:i]];
-                break;
-            }
-        }
+        NSMutableSet* updateProperties = NSMutableSet.new;
+        [updateProperties addObject:properties];
         
         if (args) {
             id arg = va_arg(args, id);
             while (arg) {
-                for (NSUInteger i = 0;i < propCount;i++) {
-                    if ([arg isEqualToString:[savedPropNameList objectAtIndex:i]]) {
-                        [propertyNames addObject:[savedPropNameList objectAtIndex:i]];
-                        [propertyTypes addObject:[savedPropTypeList objectAtIndex:i]];
-                        break;
-                    }
-                }
-                
+                [updateProperties addObject:arg];
                 arg = va_arg(args, id);
             }
         }
+
+        NSMutableArray* list = NSMutableArray.new;
+        for (HAEntityPropertyInfo* info in [HAEntityPropertyInfo propertyInfoList:entityClass]) {
+            if ([updateProperties member:info.propertyName]) { // TODO: Is this use isEqualsString ???
+                [list addObject:info];
+            }
+        }
+        
+        return list;
     } else {
-        [entityClass propertiesForUpdates:propertyNames propertyTypes:propertyTypes];
+        return [HAEntityPropertyInfo propertyInfoList:entityClass includesIfReadOnly:FALSE];
     }
 }
 
-- (void) HA_updateReadonlyProperties:(Class)entityClass database:(FMDatabase*)db rowid:(sqlite_int64)rowid
+- (void) HA_fetchReadonlyProperties:(Class)entityClass database:(FMDatabase*)db rowid:(sqlite_int64)rowid
 {
-    NSMutableArray* readonlyPropertyNames = [NSMutableArray new];
-    [entityClass propertiesForReadOnly:readonlyPropertyNames propertyTypes:nil];
+    NSArray* readonlyPropertyInfoList = [HAEntityPropertyInfo propertyInfoList:entityClass includesIfReadOnly:TRUE];
+    
 
-    if (readonlyPropertyNames.count > 0) {
+    if (readonlyPropertyInfoList.count > 0) {
+        
+        NSMutableString* buffer = [NSMutableString new];
+        BOOL firstColumn = TRUE;
+        for (HAEntityPropertyInfo* info in readonlyPropertyInfoList) {
+            if (!firstColumn) {
+                [buffer appendString:@", "];
+            }
+            [buffer appendString:info.columnName];
+            firstColumn = FALSE;
+        }
+        
+
         NSArray* params = [NSArray arrayWithObject:[NSNumber numberWithLongLong:rowid]];
         NSString* selectReadonlySQL = [NSString stringWithFormat:@"SELECT %@ FROM %@ WHERE %@ = ?",
-                                       [readonlyPropertyNames componentsJoinedByString:@", "],
+                                       buffer,
                                        [entityClass tableName],
                                        ROW_ID_COLUMN_NAME];
         
@@ -283,10 +276,7 @@ static NSCache* CACHE_TABLE = nil;
     __block BOOL result = FALSE;
     Class entityClass = [self class];
 
-    NSMutableArray* propertyNames = [NSMutableArray new];
-    NSMutableArray* propertyTypes = [NSMutableArray new];
-    [self HA_someOfUpdatingProperties:entityClass propertyNames:propertyNames propertyTypes:propertyTypes properties:properties list:args];
-    NSUInteger propCount = propertyNames.count;
+    NSArray* propertyInfoList = [self HA_someOfUpdatingProperties:entityClass properties:properties list:args];
     
     if (_isNew) {
         // Build insert stmt like INSERT table_name (column, ...) values (?,...)
@@ -297,10 +287,11 @@ static NSCache* CACHE_TABLE = nil;
         
         BOOL firstColumn = TRUE;
         [insertSQL appendFormat:@"INSERT INTO %@ (",[entityClass tableName]];
-        for (NSUInteger i = 0;i < propCount;i++) {
-            NSString* propName = [propertyNames objectAtIndex:i];
-            NSString* propType = [propertyTypes objectAtIndex:i];
-            NSString* columnName = [entityClass convertPropertyToColumnName:propName];
+        
+        for (HAEntityPropertyInfo* info in propertyInfoList) {
+            NSString* propName = info.propertyName;
+            NSString* propType = info.propertyType;
+            NSString* columnName = info.columnName;
             id value = [self convertToObjectValue:propName propertyType:propType];
             NSString* paramFormat = (nil != value) ? @"?" : @"null";
             
@@ -317,7 +308,7 @@ static NSCache* CACHE_TABLE = nil;
                 [values addObject:value];
             }
         }
-
+        
         // TODO: Define the behavior if there is no need to update column here(AUTOINCREMENT and DEFAULT only.)
         [params appendString:@")"];
         [insertSQL appendFormat:@") VALUES %@;", params];
@@ -338,7 +329,7 @@ static NSCache* CACHE_TABLE = nil;
             _rowid = [db lastInsertRowId];
             _isNew = FALSE;
 
-            [self HA_updateReadonlyProperties:entityClass database:db rowid:_rowid];
+            [self HA_fetchReadonlyProperties:entityClass database:db rowid:_rowid];
         }];
 
     } else {
@@ -349,10 +340,10 @@ static NSCache* CACHE_TABLE = nil;
         
         BOOL firstColumn = TRUE;
         [updateSQL appendFormat:@"UPDATE %@ SET ",[entityClass tableName]];
-        for (NSUInteger i = 0;i < propCount;i++) {
-            NSString* propName = [propertyNames objectAtIndex:i];
-            NSString* propType = [propertyTypes objectAtIndex:i];
-            NSString* columnName = [entityClass convertPropertyToColumnName:propName];
+        for (HAEntityPropertyInfo* info in propertyInfoList) {
+            NSString* propName = info.propertyName;
+            NSString* propType = info.propertyType;
+            NSString* columnName = info.columnName;
             id value = [self convertToObjectValue:propName propertyType:propType];
             NSString* param = (nil != value) ? @"?" : @"null";
             if (firstColumn) {

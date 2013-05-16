@@ -361,21 +361,21 @@ static BOOL unprepareIsCalled = FALSE;
 
 - (void)testColumnNamesForHATestSample1
 {
-    NSArray* columnNames = [HATestSample1 columnNames];
+    NSArray* columnNames = [HAEntityPropertyInfo propertyStringList:[HATestSample1 class] filterType:HAEntityPropertyInfoFilterTypeColumnName];
     NSString* names = [columnNames componentsJoinedByString:@","];
     STAssertEqualObjects(@"numValue", names, @"Verify columns");
 }
 
 - (void)testColumnNamesForHATestSample3
 {
-    NSArray* columnNames = [HATestSample3 columnNames];
+    NSArray* columnNames = [HAEntityPropertyInfo propertyStringList:[HATestSample3 class] filterType:HAEntityPropertyInfoFilterTypeColumnName];
     NSString* names = [columnNames componentsJoinedByString:@","];
     STAssertEqualObjects(@"numValue,stringValue", names, @"Verify columns");
 }
 
 - (void)testColumnNamesForHATestSample4
 {
-    NSArray* columnNames = [HATestSample4 columnNames];
+    NSArray* columnNames = [HAEntityPropertyInfo propertyStringList:[HATestSample4 class] filterType:HAEntityPropertyInfoFilterTypeColumnName];
     NSString* names = [columnNames componentsJoinedByString:@","];
     STAssertEqualObjects(@"numberValueC", names, @"Verify columns for dynamic property");
 }
@@ -383,8 +383,8 @@ static BOOL unprepareIsCalled = FALSE;
 
 - (void)testColumnNamesAndTypes
 {
-    NSMutableArray* columnNames = [NSMutableArray new];
-    NSMutableArray* columnTypes = [NSMutableArray new];
+    NSArray* columnNames = [NSMutableArray new];
+    NSArray* columnTypes = [NSMutableArray new];
 
     NSMutableArray* correctNames = [NSMutableArray new];
     NSMutableArray* correctTypes = [NSMutableArray new];
@@ -425,8 +425,8 @@ static BOOL unprepareIsCalled = FALSE;
     [correctTypes addObject:@"NUMERIC"];
     [correctTypes addObject:@"NONE"];
 
-    
-    [HATestDataMock columns:columnNames columnTypes:columnTypes];
+    columnNames = [HAEntityPropertyInfo propertyStringList:[HATestDataMock class] filterType:HAEntityPropertyInfoFilterTypeColumnName];
+    columnTypes = [HAEntityPropertyInfo propertyStringList:[HATestDataMock class] filterType:HAEntityPropertyInfoFilterTypeColumnType];
     
     [columnNames isEqualToArray:correctNames];
     [columnTypes isEqualToArray:correctTypes];
@@ -436,21 +436,21 @@ static BOOL unprepareIsCalled = FALSE;
 
 - (void)testPropertyNamesForHATestSample1
 {
-    NSArray* propertyNames = [HATestSample1 propertyNames];
+    NSArray* propertyNames = [HAEntityPropertyInfo propertyStringList:[HATestSample1 class] filterType:HAEntityPropertyInfoFilterTypePropertyName];
     NSString* names = [propertyNames componentsJoinedByString:@","];
     STAssertEqualObjects(@"numValue", names, @"Verify columns");
 }
 
 - (void)testPropertyNamesForHATestSample3
 {
-    NSArray* propertyNames = [HATestSample3 propertyNames];
+    NSArray* propertyNames = [HAEntityPropertyInfo propertyStringList:[HATestSample3 class] filterType:HAEntityPropertyInfoFilterTypePropertyName];
     NSString* names = [propertyNames componentsJoinedByString:@","];
     STAssertEqualObjects(@"numValue,stringValue", names, @"Verify columns");
 }
 
 - (void)testPropertyNamesForHATestSample4
 {
-    NSArray* propertyNames = [HATestSample4 propertyNames];
+    NSArray* propertyNames = [HAEntityPropertyInfo propertyStringList:[HATestSample4 class] filterType:HAEntityPropertyInfoFilterTypePropertyName];
     NSString* names = [propertyNames componentsJoinedByString:@","];
     STAssertEqualObjects(@"numberValue", names, @"Verify columns for dynamic property");
 }
@@ -459,8 +459,8 @@ static BOOL unprepareIsCalled = FALSE;
 
 - (void)testPropertyNamesAndTypes
 {
-    NSMutableArray* propertyNames = [NSMutableArray new];
-    NSMutableArray* propertyTypes = [NSMutableArray new];
+    NSArray* propertyNames = [NSMutableArray new];
+    NSArray* propertyTypes = [NSMutableArray new];
     
     NSMutableArray* correctNames = [NSMutableArray new];
     NSMutableArray* correctTypes = [NSMutableArray new];
@@ -500,8 +500,9 @@ static BOOL unprepareIsCalled = FALSE;
     [correctTypes addObject:@"NSString"];
     [correctTypes addObject:@"NSDate"];
     [correctTypes addObject:@"NSData"];
-    
-    [HATestDataMock columns:propertyNames columnTypes:propertyTypes];
+
+    propertyNames = [HAEntityPropertyInfo propertyStringList:[HATestDataMock class] filterType:HAEntityPropertyInfoFilterTypePropertyName];
+    propertyTypes = [HAEntityPropertyInfo propertyStringList:[HATestDataMock class] filterType:HAEntityPropertyInfoFilterTypePropertyType];
     
     [propertyNames isEqualToArray:correctNames];
     [propertyTypes isEqualToArray:correctTypes];
@@ -742,29 +743,19 @@ static BOOL unprepareIsCalled = FALSE;
 
 - (void)testPropertiesForUpdates
 {
-    NSMutableArray* propertyNames = [NSMutableArray new];
-    NSMutableArray* propertyTypes = [NSMutableArray new];
-    
-    [HATestSample5 propertiesForUpdates:propertyNames propertyTypes:propertyTypes];
-    
-    STAssertEquals((NSUInteger)1, propertyNames.count, @"Verify no updatable property names");
-    STAssertEquals((NSUInteger)1, propertyTypes.count, @"Verify no updatable property types");
-    STAssertEqualObjects(@"stringValue", [propertyNames objectAtIndex:0], @"Verify no updatable property names");
+    NSArray* infoList = [HAEntityPropertyInfo propertyInfoList:[HATestSample5 class] includesIfReadOnly:FALSE];
+    STAssertEquals((NSUInteger)1, infoList.count, @"Verify no updatable propertyNames");
+    STAssertEqualObjects(@"stringValue", [[infoList objectAtIndex:0] propertyName], @"Verify updatable property names");
 }
 
 - (void)testPropertiesForReadOnly
 {
     [self createSample3:1 stringValue:@"foo"];
     [self createSample3:2 stringValue:@"bar"];
-    
-    NSMutableArray* propertyNames = [NSMutableArray new];
-    NSMutableArray* propertyTypes = [NSMutableArray new];
-    
-    [HATestSample5 propertiesForReadOnly:propertyNames propertyTypes:propertyTypes];
-    
-    STAssertEquals((NSUInteger)1, propertyNames.count, @"Verify no updatable property names");
-    STAssertEquals((NSUInteger)1, propertyTypes.count, @"Verify no updatable property types");
-    STAssertEqualObjects(@"numValue", [propertyNames objectAtIndex:0], @"Verify no updatable property names");
+
+    NSArray* infoList = [HAEntityPropertyInfo propertyInfoList:[HATestSample5 class] includesIfReadOnly:TRUE];
+    STAssertEquals((NSUInteger)1, infoList.count, @"Verify no updatable propertyNames");
+    STAssertEqualObjects(@"numValue", [[infoList objectAtIndex:0] propertyName], @"Verify no updatable property names");
 }
 
 #pragma mark -

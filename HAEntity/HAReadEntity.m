@@ -31,8 +31,7 @@
 
 + (NSString*) selectPrefix
 {
-    NSMutableArray* columnNames = [NSMutableArray new];
-    [self columns:columnNames columnTypes:nil];
+    NSArray* columnNames = [HAEntityPropertyInfo propertyStringList:self filterType:HAEntityPropertyInfoFilterTypeColumnName];
     return [NSString stringWithFormat:@"SELECT %@ FROM %@", [columnNames componentsJoinedByString:@", "], [self tableName]];
 }
 
@@ -106,8 +105,7 @@
 
 + (void) group_by_each:(HABaseEntityEachHandler)block group_by:(NSString*)group_by params:(id)params list:(va_list)args
 {
-    NSMutableArray* columnNames = [NSMutableArray new];
-    [self columns:columnNames columnTypes:nil];
+    NSArray* columnNames = [HAEntityPropertyInfo propertyStringList:self filterType:HAEntityPropertyInfoFilterTypeColumnName];
     NSString* columns = [columnNames componentsJoinedByString:@", "];
 
     // TODO: This should be changed because this is group by and column may not have the correct function.

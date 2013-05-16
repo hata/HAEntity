@@ -22,8 +22,9 @@
 #import "HABaseEntity.h"
 
 
-@implementation HABaseEntity
 
+
+@implementation HABaseEntity
 
 const static NSString* PROPERTY_TYPE_CHAR = @"c";
 const static NSString* PROPERTY_TYPE_SHORT = @"s";
@@ -41,37 +42,6 @@ const static NSString* PROPERTY_TYPE_DOUBLE = @"d";
 const static NSString* PROPERTY_TYPE_CLASS_NSDate = @"NSDate";
 const static NSString* PROPERTY_TYPE_CLASS_NSString = @"NSString";
 const static NSString* PROPERTY_TYPE_CLASS_NSData = @"NSData";
-
-const static NSString* PROPERTY_ATTR_READONLY = @"R";
-
-
-/*
- * @see https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtPropertyIntrospection.html#//apple_ref/doc/uid/TP40008048-CH101-SW1
- */
-static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attrs) {
-    const char* attributes = property_getAttributes(property);
-    char buffer[strlen(attributes) + 1];
-    strcpy(buffer, attributes);
-    char *state = buffer;
-    char *attribute;
-    NSString* type = @"";
-    
-    while ((attribute = strsep(&state, ",")) != NULL) {
-        if (attribute[0] == 'T' && attribute[1] != '@') {
-            NSData* data = [NSData dataWithBytes:(attribute + 1) length:strlen(attribute) - 1];
-            type = [NSString stringWithCString:(const char *)[data bytes] encoding:NSASCIIStringEncoding];
-        } else if (attribute[0] == 'T' && attribute[1] == '@' && strlen(attribute) == 2) {
-            type = @"id";
-        } else if (attribute[0] == 'T' && attribute[1] == '@') {
-            NSData* data = [NSData dataWithBytes:(attribute + 3) length:strlen(attribute) - 4];
-            type = [NSString stringWithCString:(const char *)[data bytes] encoding:NSASCIIStringEncoding];
-        } else if (attrs != nil && attribute[0] == 'R' /* && strlen(attribute) == 1*/) {
-            [attrs addObject:PROPERTY_ATTR_READONLY];
-        }
-    }
-    
-    return type;
-}
 
 
 + (NSString*)addRequiredColumns:(NSString*)selectColumns {
@@ -446,119 +416,10 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
 }
 
 
-+ (NSArray*) columnNames
-{
-    NSMutableArray *columnNames = [NSMutableArray arrayWithCapacity:0];
-    [self columns:columnNames columnTypes:nil];
-    return columnNames;
-}
-
-+ (void) columns:(NSMutableArray*)columnNames columnTypes:(NSMutableArray*)columnTypes
-{
-    unsigned int outCount, i;
-    objc_property_t *properties = class_copyPropertyList(self, &outCount);
-    for(i = 0; i < outCount; i++) {
-        objc_property_t property = properties[i];
-        const char *propName = property_getName(property);
-        if(propName) {
-            NSString *propertyName = [NSString stringWithCString:propName encoding:NSASCIIStringEncoding];
-            NSString *propertyType = HA_getPropertyType(property, nil);
-            [columnNames addObject:[self convertPropertyToColumnName:propertyName]];
-            [columnTypes addObject:[self convertPropertyToColumnType:propertyType]];
-            // LOG(@" property name is %@ %@", propertyName, propertyType);
-        }
-    }
-    free(properties);
-}
-
-+ (NSArray*) propertyNames
-{
-    NSMutableArray *propertyNames = [NSMutableArray arrayWithCapacity:0];
-    [self properties:propertyNames propertyTypes:nil];
-    return propertyNames;
-}
-
-+ (void) properties:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
-{
-    [self properties:propertyNames propertyTypes:propertyTypes attributes:nil];
-}
-
-/**
- * Get properties with types and other attributes.
- * @param propertyNames are returned name list.
- * @param propertyTypes are returned type list.
- * This type list is using TypeEncoding.
- * https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100-SW1
- * So, primitive types are like 'i' and 'l'.
- * @param attributes are other than type(Txxx). For example, @"R" is readonly.(And it is the only one to be supported....)
- * Each element is NSArray. And the value is NSString. If I can write template, it is like NSMutableArray<NSSet<NSString>>>.
- */
-+ (void) properties:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes attributes:(NSMutableArray*)attributes
-{
-    unsigned int outCount, i;
-    objc_property_t *properties = class_copyPropertyList(self, &outCount);
-    for(i = 0; i < outCount; i++) {
-        objc_property_t property = properties[i];
-        const char *propName = property_getName(property);
-        if(propName) {
-            NSMutableSet* attrList = attributes ? [NSMutableSet new] : nil;
-            NSString *propertyName = [NSString stringWithCString:propName encoding:NSASCIIStringEncoding];
-            NSString *propertyType = HA_getPropertyType(property, attrList);
-            [propertyNames addObject:propertyName];
-            [propertyTypes addObject:propertyType];
-            [attributes addObject:attrList];
-        }
-    }
-    free(properties);
-}
-
-+ (void) propertiesForUpdates:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
-{
-    NSMutableArray* attributes = [NSMutableArray new];
-    [self properties:propertyNames propertyTypes:propertyTypes attributes:attributes];
-
-    int offset = 0;
-    NSUInteger propCount = attributes.count;
-    for (NSUInteger i = 0;i < propCount;i++) {
-        NSSet* attrSet = [attributes objectAtIndex:i];
-        if (attrSet.count > 0 && [attrSet member:PROPERTY_ATTR_READONLY]) {
-            [propertyNames removeObjectAtIndex:(i + offset)];
-            [propertyTypes removeObjectAtIndex:(i + offset)];
-            offset--;
-        }
-    }
-}
-
-+ (void) propertiesForReadOnly:(NSMutableArray*)propertyNames propertyTypes:(NSMutableArray*)propertyTypes
-{
-    NSMutableArray* savedPropertyNames = [NSMutableArray new];
-    NSMutableArray* savedPropertyTypes = [NSMutableArray new];
-    NSMutableArray* attributes = [NSMutableArray new];
-    
-    [self properties:savedPropertyNames propertyTypes:savedPropertyTypes attributes:attributes];
-    
-    NSUInteger propCount = attributes.count;
-    for (NSUInteger i = 0;i < propCount;i++) {
-        NSSet* attrSet = [attributes objectAtIndex:i];
-        if (attrSet.count > 0 && [attrSet member:PROPERTY_ATTR_READONLY]) {
-            [propertyNames addObject:[savedPropertyNames objectAtIndex:i]];
-            [propertyTypes addObject:[savedPropertyTypes objectAtIndex:i]];
-        }
-    }
-}
-
-
 + (NSString*) convertPropertyToColumnName:(NSString*) propertyName
 {
     return propertyName;
 }
-
-/*
-+ (NSString*) convertColumnToPropertyName:(NSString*) columnName
-{
-    return columnName;
-}
-*/
 
 /**
  * @see https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html#//apple_ref/doc/uid/TP40008048-CH100-SW1
@@ -630,8 +491,6 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
 }
 
 
-
-
 - (id) init
 {
     if (self = [super init]) {
@@ -648,11 +507,7 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
 
 - (void) setResultSetToProperties:(FMResultSet*)resultSet
 {
-    NSMutableArray* propertyNames = [NSMutableArray new];
-    NSMutableArray* propertyTypes = [NSMutableArray new];
     Class entityClass = [self class];
-    
-    [entityClass properties:propertyNames propertyTypes:propertyTypes];
 
     int columnCount = [resultSet columnCount];
     NSMutableSet* resultColumnSet = [[NSMutableSet alloc] initWithCapacity:columnCount];
@@ -660,15 +515,13 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
         [resultColumnSet addObject:[resultSet columnNameForIndex:i]];
     }
     
-    NSUInteger propertyCount = propertyNames.count;
-    for (NSUInteger i = 0;i < propertyCount;i++) {
-        NSString* propName = [propertyNames objectAtIndex:i];
-        NSString* propType = [propertyTypes objectAtIndex:i];
-        NSString* columnName = [entityClass convertPropertyToColumnName:propName];
-
-        if ([resultColumnSet member:columnName]) {
-            id returnValue = [self convertColumnToPropertyValue:resultSet propertyName:propName propertyType:propType columnName:columnName];
-            [self setValue:returnValue forKey:propName];
+    for (HAEntityPropertyInfo* info in [HAEntityPropertyInfo propertyInfoList:entityClass]) {
+        if ([resultColumnSet member:info.columnName]) {
+            id returnValue = [self convertColumnToPropertyValue:resultSet
+                                                   propertyName:info.propertyName
+                                                   propertyType:info.propertyType
+                                                     columnName:info.columnName];
+            [self setValue:returnValue forKey:info.propertyName];
         }
     }
 }

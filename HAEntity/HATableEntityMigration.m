@@ -61,21 +61,14 @@
 
 - (NSString*) createTableSQL:(Class)entityClass
 {
-    NSMutableArray *columnNames = [NSMutableArray arrayWithCapacity:0];
-    NSMutableArray *columnTypes = [NSMutableArray arrayWithCapacity:0];
-    
-    [entityClass columns:columnNames columnTypes:columnTypes];
-    
     NSMutableString* buffer = [NSMutableString new];
     
     [buffer appendFormat:@"CREATE TABLE IF NOT EXISTS %@ (", [entityClass tableName]];
-
     BOOL firstColunn = TRUE;
-    NSUInteger columnCount = columnNames.count;
-    for (NSUInteger i = 0;i < columnCount;i++) {
+    for (HAEntityPropertyInfo* info in [HAEntityPropertyInfo propertyInfoList:entityClass]) {
         NSString* fmt = firstColunn ? @"%@ %@" : @", %@ %@";
         firstColunn = FALSE;
-        [buffer appendFormat:fmt, [columnNames objectAtIndex:i], [columnTypes objectAtIndex:i]];
+        [buffer appendFormat:fmt, info.columnName, info.columnType];
     }
     [buffer appendString:@");"];
 

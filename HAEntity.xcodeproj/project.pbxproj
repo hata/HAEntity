@@ -14,6 +14,8 @@
 		4B291F551719CEC500226D8C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F421719CEC500226D8C /* Foundation.framework */; };
 		4B291F581719CEC500226D8C /* libHAEntity.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B291F3F1719CEC500226D8C /* libHAEntity.a */; };
 		4B291F5E1719CEC500226D8C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4B291F5C1719CEC500226D8C /* InfoPlist.strings */; };
+		4B2AF0D81741D50D00F093F6 /* HAEntityPropertyInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B2AF0D71741D50D00F093F6 /* HAEntityPropertyInfo.m */; };
+		4B2AF0DB17449A6300F093F6 /* HAEntityPropertyInfoTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B2AF0DA17449A6300F093F6 /* HAEntityPropertyInfoTest.m */; };
 		4B3076BF1736D05300FC4E55 /* HAEntityPerfTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */; };
 		4B41D23317223603006248DA /* HAReadEntityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23217223603006248DA /* HAReadEntityTest.m */; };
 		4B41D23617225E63006248DA /* HASQLMigration.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23517225E63006248DA /* HASQLMigration.m */; };
@@ -66,6 +68,10 @@
 		4B291F531719CEC500226D8C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		4B291F5B1719CEC500226D8C /* HAEntityTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "HAEntityTests-Info.plist"; sourceTree = "<group>"; };
 		4B291F5D1719CEC500226D8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		4B2AF0D61741D50D00F093F6 /* HAEntityPropertyInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityPropertyInfo.h; sourceTree = "<group>"; };
+		4B2AF0D71741D50D00F093F6 /* HAEntityPropertyInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityPropertyInfo.m; sourceTree = "<group>"; };
+		4B2AF0D917449A6300F093F6 /* HAEntityPropertyInfoTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityPropertyInfoTest.h; sourceTree = "<group>"; };
+		4B2AF0DA17449A6300F093F6 /* HAEntityPropertyInfoTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityPropertyInfoTest.m; sourceTree = "<group>"; };
 		4B3076B0172E0B0900FC4E55 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
 		4B3076BD1736D05300FC4E55 /* HAEntityPerfTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityPerfTest.h; sourceTree = "<group>"; };
 		4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityPerfTest.m; sourceTree = "<group>"; };
@@ -182,6 +188,8 @@
 				4B41D23517225E63006248DA /* HASQLMigration.m */,
 				4B41D23A172272A4006248DA /* HAPListMigration.h */,
 				4B41D23B172272A4006248DA /* HAPListMigration.m */,
+				4B2AF0D61741D50D00F093F6 /* HAEntityPropertyInfo.h */,
+				4B2AF0D71741D50D00F093F6 /* HAEntityPropertyInfo.m */,
 				4B291F451719CEC500226D8C /* Supporting Files */,
 			);
 			path = HAEntity;
@@ -213,6 +221,8 @@
 				4B41D2381722648B006248DA /* HASQLMigrationTest.m */,
 				4B41D23F17227AA3006248DA /* HAPListMigrationTest.h */,
 				4B41D24017227AA3006248DA /* HAPListMigrationTest.m */,
+				4B2AF0D917449A6300F093F6 /* HAEntityPropertyInfoTest.h */,
+				4B2AF0DA17449A6300F093F6 /* HAEntityPropertyInfoTest.m */,
 				4B3076BD1736D05300FC4E55 /* HAEntityPerfTest.h */,
 				4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */,
 				4BBC68F71719D93A008D1775 /* libPods.a */,
@@ -367,6 +377,7 @@
 				4BBC690B171A203D008D1775 /* HATableEntityMigration.m in Sources */,
 				4B41D23617225E63006248DA /* HASQLMigration.m in Sources */,
 				4B41D23C172272A4006248DA /* HAPListMigration.m in Sources */,
+				4B2AF0D81741D50D00F093F6 /* HAEntityPropertyInfo.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,6 +393,7 @@
 				4B41D2391722648B006248DA /* HASQLMigrationTest.m in Sources */,
 				4B41D24117227AA3006248DA /* HAPListMigrationTest.m in Sources */,
 				4B3076BF1736D05300FC4E55 /* HAEntityPerfTest.m in Sources */,
+				4B2AF0DB17449A6300F093F6 /* HAEntityPropertyInfoTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
