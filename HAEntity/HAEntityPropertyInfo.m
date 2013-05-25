@@ -15,6 +15,8 @@
 
 #import <objc/runtime.h>
 #import "HABaseEntity.h"
+#import "HATableEntity.h"
+#import "HAReadEntity.h"
 #import "HAEntityPropertyInfo.h"
 
 @implementation HAEntityPropertyInfo
@@ -71,11 +73,26 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
 
 + (NSArray*)propertyInfoList:(Class)entityClass
 {
-
     NSArray* infoList = [CACHE_TABLE objectForKey:entityClass];
-    if (!infoList) {
-        NSMutableArray* propInfoList = NSMutableArray.new;
-        
+    if (infoList) {
+        return infoList;
+    }
+
+    NSMutableArray* entityClassList = NSMutableArray.new;
+    do {
+        if ([entityClass isSubclassOfClass:HABaseEntity.class]) {
+            [entityClassList addObject:entityClass];
+            entityClass = [entityClass superclass];
+        } else {
+            break;
+        }
+    } while ((entityClass != HATableEntity.class) &&
+             (entityClass != HAReadEntity.class) &&
+             (entityClass != HABaseEntity.class));
+ 
+    NSMutableArray* propInfoList = NSMutableArray.new;
+    
+    for (entityClass in entityClassList) {
         unsigned int outCount, i;
         objc_property_t *properties = class_copyPropertyList(entityClass, &outCount);
         for(i = 0; i < outCount; i++) {
@@ -91,10 +108,11 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
             }
         }
         free(properties);
-
-        infoList = propInfoList;
-        [CACHE_TABLE setObject:infoList forKey:entityClass];
     }
+    
+    infoList = propInfoList;
+    [CACHE_TABLE setObject:infoList forKey:entityClass];
+
     return infoList;
 }
 

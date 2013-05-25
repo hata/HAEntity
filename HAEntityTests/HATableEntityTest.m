@@ -121,6 +121,11 @@
 @end
 
 
+@interface HATableEntityTestSample4 : HATableEntityTestSample3
+@end
+
+@implementation HATableEntityTestSample4
+@end
 
 
 @implementation HATableEntityTest
@@ -384,6 +389,17 @@
     STAssertEquals(sample3b.rowid, sample3.rowid, @"Verify select method can return a correct rowid");
 }
 
+
+- (void)testSubClassFromOtherEntityClass
+{
+    HATableEntityTestSample4* sample4 = [HATableEntityTestSample4 new];
+    sample4.stringValue = @"foo";
+    [sample4 save];
+    
+    NSArray* result = [HATableEntityTestSample4 select:@"stringValue, numValue FROM table_sample3 WHERE rowid=?" params:[NSNumber numberWithLongLong:sample4.rowid], nil];
+    HATableEntityTestSample4* sample4b = [result objectAtIndex:0];
+    STAssertEquals(sample4b.rowid, sample4.rowid, @"Verify select method can return a correct rowid");
+}
 
 
 
