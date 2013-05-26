@@ -128,6 +128,48 @@
 @end
 
 
+@interface HATableEntityTestSample5 : HATableEntityTestSample3 {
+}
+
+@end
+
+@implementation HATableEntityTestSample5
+
++ (NSString*) tableName
+{
+    return @"table_sample3";
+}
+
++ (NSString*) join
+{
+    return @"INNER JOIN table_sample6 ON table_sample3.numValue = table_sample6.sample6NumValue";
+}
+
+@end
+
+
+
+@interface HATableEntityTestSample6 : HATableEntity {
+@private
+    NSInteger sample6NumValue;
+}
+
+@property NSInteger sample6NumValue;
+
+@end
+
+@implementation HATableEntityTestSample6
+@synthesize sample6NumValue;
+
++ (NSString*) tableName
+{
+    return @"table_sample6";
+}
+
+@end
+
+
+
 @implementation HATableEntityTest
 
 - (void)setUp
@@ -137,7 +179,7 @@
     dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HATableEntityTest.sqlite"];
     [HAEntityManager instanceForPath:dbFilePath];
     HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1
-                                                                          entityClasses:[HATableEntityTestSample1 class], nil];
+                                                                          entityClasses:[HATableEntityTestSample1 class], [HATableEntityTestSample6 class], nil];
     HASQLMigration* migration2 = [[HASQLMigration alloc] initWithVersion:1];
     [migration2 addSQLForEntity:[HATableEntityTestSample3 class] upSQL:@"CREATE TABLE table_sample3(numValue INTEGER PRIMARY KEY, stringValue TEXT);" downSQL:nil];
     [[HAEntityManager instanceForPath:dbFilePath] upToHighestVersion:migration, migration2, nil];
@@ -402,6 +444,25 @@
 }
 
 
+- (void)testInnerJoinTable
+{
+    HATableEntityTestSample3* sample3 = [HATableEntityTestSample3 new];
+    sample3.stringValue = @"foo";
+    [sample3 save];
+    
+    HATableEntityTestSample6* sample6 = [HATableEntityTestSample6 new];
+    sample6.sample6NumValue = sample3.numValue;
+    [sample6 save];
+
+    [HAEntityManager trace:HAEntityManagerTraceLevelDebug block:^{
+        NSArray* result = [HATableEntityTestSample5 where:@"table_sample3.numValue = ?" params:[NSNumber numberWithInteger:sample3.numValue], nil];
+        STAssertEquals(((NSUInteger)1), result.count, @"Verify 1 row is returned.");
+        HATableEntityTestSample5* sample5 = [result objectAtIndex:0];
+        STAssertEquals(sample3.numValue, sample5.numValue, @"Verify table_sample3 is returned.");
+        STAssertEqualObjects(@"foo", sample5.stringValue, @"Verify table_sample3 is returned.");
+    }];
+    
+}
 
 
 

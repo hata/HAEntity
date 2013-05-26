@@ -513,10 +513,16 @@ const static NSString* PROPERTY_TYPE_CLASS_NSData = @"NSData";
     NSMutableSet* resultColumnSet = [[NSMutableSet alloc] initWithCapacity:columnCount];
     for (int i = 0;i < columnCount;i++) {
         [resultColumnSet addObject:[resultSet columnNameForIndex:i]];
+        if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelError]) {
+            NSLog(@"resultSet columnName=%@", [resultSet columnNameForIndex:i]);
+        }
     }
     
     for (HAEntityPropertyInfo* info in [HAEntityPropertyInfo propertyInfoList:entityClass]) {
         if ([resultColumnSet member:info.columnName]) {
+            if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelError]) {
+                NSLog(@"info.columnName=%@", info.columnName);
+            }
             id returnValue = [self convertColumnToPropertyValue:resultSet
                                                    propertyName:info.propertyName
                                                    propertyType:info.propertyType

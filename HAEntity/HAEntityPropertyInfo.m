@@ -77,24 +77,25 @@ static NSString* HA_getPropertyType(objc_property_t property, NSMutableSet* attr
     if (infoList) {
         return infoList;
     }
+    Class clazz = entityClass;
 
     NSMutableArray* entityClassList = NSMutableArray.new;
     do {
-        if ([entityClass isSubclassOfClass:HABaseEntity.class]) {
-            [entityClassList addObject:entityClass];
-            entityClass = [entityClass superclass];
+        if ([clazz isSubclassOfClass:HABaseEntity.class]) {
+            [entityClassList addObject:clazz];
+            clazz = [clazz superclass];
         } else {
             break;
         }
-    } while ((entityClass != HATableEntity.class) &&
-             (entityClass != HAReadEntity.class) &&
-             (entityClass != HABaseEntity.class));
+    } while ((clazz != HATableEntity.class) &&
+             (clazz != HAReadEntity.class) &&
+             (clazz != HABaseEntity.class));
  
     NSMutableArray* propInfoList = NSMutableArray.new;
     
-    for (entityClass in entityClassList) {
+    for (clazz in entityClassList) {
         unsigned int outCount, i;
-        objc_property_t *properties = class_copyPropertyList(entityClass, &outCount);
+        objc_property_t *properties = class_copyPropertyList(clazz, &outCount);
         for(i = 0; i < outCount; i++) {
             objc_property_t property = properties[i];
             const char *propName = property_getName(property);

@@ -53,6 +53,10 @@
 {
     NSLog(@"Setup HAEntityPerfTest");
     [super setUp];
+    if (!HA_ENTITY_PERF_TEST_ENABLED) {
+        return;
+    }
+
     dbFilePath = [NSTemporaryDirectory() stringByAppendingString:@"/HAEntity_HAEntityPerfTest.sqlite"];
     manager = [HAEntityManager instanceForPath:dbFilePath];
     
@@ -71,6 +75,11 @@
 
 - (void)tearDown
 {
+    if (!HA_ENTITY_PERF_TEST_ENABLED) {
+        [super tearDown];
+        return;
+    }
+
     [[HAEntityManager instanceForPath:dbFilePath] remove];
     
     NSError* error;
@@ -88,6 +97,11 @@
 
 - (void)testInitialInstance
 {
+    if (!HA_ENTITY_PERF_TEST_ENABLED) {
+        NSLog(@"skip performance test.");
+        return;
+    }
+    
     NSLog(@"================== START: testInitialInstance ==================");
     [manager inDatabase:^(FMDatabase *db) {
         BM_START(SQL_SELECT_INDEXED_NUM);

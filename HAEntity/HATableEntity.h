@@ -30,6 +30,7 @@
 @property (readonly) sqlite_int64 rowid;
 
 + (NSString*) tableName;
++ (NSString*) join;
 
 + (id) find_by_rowid:(sqlite_int64)rowid;
 

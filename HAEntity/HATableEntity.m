@@ -46,6 +46,16 @@ static NSCache* CACHE_TABLE = nil;
     return nil;
 }
 
++ (NSString*) join
+{
+    return nil;
+}
+
++ (NSString*) queryColumnName:(NSString*)columnName
+{
+    return [self join] ? [NSString stringWithFormat:@"%@.%@", [self tableName], columnName] : columnName;
+}
+
 
 // TODO: Check code should check more details of columns.
 + (NSString*)addRequiredColumns:(NSString*)selectColumns {
@@ -105,13 +115,17 @@ static NSCache* CACHE_TABLE = nil;
     NSString* cachePrefix = [CACHE_TABLE objectForKey:self];
     if (!cachePrefix) {
         NSMutableString* buffer = [NSMutableString new];
-        [buffer appendFormat:@"SELECT %@", ROW_ID_COLUMN_NAME];
+        [buffer appendFormat:@"SELECT %@", [self queryColumnName:ROW_ID_COLUMN_NAME]];
         for (HAEntityPropertyInfo* info in [HAEntityPropertyInfo propertyInfoList:self]) {
-            [buffer appendFormat:@", %@", info.columnName];
+            [buffer appendFormat:@", %@", [self queryColumnName:info.columnName]];
         }
         [buffer appendFormat:@" FROM %@", [self tableName]];
+        NSString* joinText = [self join];
+        if (joinText) {
+            [buffer appendFormat:@" %@", joinText];
+        }
         
-        [CACHE_TABLE setObject:buffer forKey:[self class]];
+        [CACHE_TABLE setObject:buffer forKey:self];
         return buffer;
     } else {
         return cachePrefix;
@@ -246,7 +260,7 @@ static NSCache* CACHE_TABLE = nil;
             if (!firstColumn) {
                 [buffer appendString:@", "];
             }
-            [buffer appendString:info.columnName];
+            [buffer appendString:[entityClass queryColumnName:info.columnName]];
             firstColumn = FALSE;
         }
         

@@ -17,6 +17,8 @@
 #import <SenTestingKit/SenTestingKit.h>
 #import "HAEntityManager.h"
 
+#define HA_ENTITY_PERF_TEST_ENABLED FALSE
+
 @interface HAEntityPerfTest : SenTestCase {
 @private
     NSString* dbFilePath;
