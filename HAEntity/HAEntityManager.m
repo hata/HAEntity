@@ -15,6 +15,7 @@
 //
 
 #import "HAEntityManager.h"
+#import "HABaseEntity.h"
 
 
 @implementation HAEntityManager
@@ -285,7 +286,7 @@ static NSMutableArray* _managerInstances = nil;
     }
 }
 
-
+/*
 
 - (void) HA_migrate:(BOOL)up toVersion:(NSInteger)toVersion migrating:(id<HAEntityMigrating>)migrating list:(va_list)args
 {
@@ -387,7 +388,129 @@ static NSMutableArray* _managerInstances = nil;
     
     [self HA_migrate:FALSE toVersion:INT_MIN migrating:migratings list:args];
 }
+*/
 
 
+- (void) HA_applyMigratingsWithOrder:(BOOL)up toVersion:(NSInteger)toVersion
+{
+    NSInteger fromVersion = up ? INT_MIN : INT_MAX; // TODO: This should get from db.
+
+    NSMutableArray* allMigratings = NSMutableArray.new;
+    if (_entityClasses) {
+        @synchronized (self) {
+            for (Class clazz in _entityClasses) {
+                NSArray* migratings = [clazz migratings];
+                if (migratings) {
+                    [allMigratings addObjectsFromArray:migratings];
+                }
+            }
+        }
+    }
+    
+    if (_migratings) {
+        @synchronized (self) {
+            [allMigratings addObjectsFromArray:_migratings];
+        }
+    }
+
+    NSSortDescriptor* sorter = [[NSSortDescriptor alloc] initWithKey:@"version" ascending:up];
+    [allMigratings sortUsingDescriptors:[NSArray arrayWithObject:sorter]];
+
+    // TODO: This may need to run in txn.
+    [allMigratings enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        id<HAEntityMigrating> sortedMigrating = obj;
+        
+        if (up) {
+            if (sortedMigrating.version <= fromVersion) {
+                // skip.
+            } else if (sortedMigrating.version <= toVersion) {
+                [self inDatabase:^(FMDatabase *db) {
+                    [sortedMigrating up:self database:db];
+                }];
+            } else {
+                *stop = TRUE;
+            }
+        } else {
+            if (sortedMigrating.version > fromVersion) {
+                // skip.
+            } else if (sortedMigrating.version > toVersion) {
+                [self inDatabase:^(FMDatabase *db) {
+                    [sortedMigrating down:self database:db];
+                }];
+            } else {
+                *stop = TRUE;
+            }
+        }
+    }];
+}
+
+- (void) up:(NSInteger)toVersion
+{
+    [self HA_applyMigratingsWithOrder:TRUE toVersion:toVersion];
+}
+
+- (void) upToHighestVersion
+{
+    [self HA_applyMigratingsWithOrder:TRUE toVersion:INT_MAX];
+}
+
+- (void) down:(NSInteger)toVersion
+{
+    [self HA_applyMigratingsWithOrder:FALSE toVersion:toVersion];
+    
+}
+
+- (void) downToLowestVersion
+{
+    [self HA_applyMigratingsWithOrder:FALSE toVersion:INT_MIN];
+}
+
+- (void) addEntityMigrating:(id<HAEntityMigrating>) migrating
+{
+    if (nil == migrating) {
+        return;
+    }
+    
+    if (nil == _migratings) {
+        @synchronized(self) {
+            if (nil == _migratings) {
+                _migratings = NSMutableArray.new;
+            }
+        }
+    }
+    
+    @synchronized(self) {
+        [_migratings addObject:migrating];
+    }
+
+}
+
+- (void) removeEntityMigrating:(id<HAEntityMigrating>) migrating
+{
+    if (nil == migrating) {
+        return;
+    }
+    
+    if (_migratings) {
+        @synchronized(self) {
+            [_migratings removeObject:migrating];
+        }
+    }
+}
+
+- (BOOL) isAddedEntityMigrating:(id<HAEntityMigrating>) migrating
+{
+    if (nil == migrating) {
+        return FALSE;
+    }
+    
+    if (_migratings) {
+        @synchronized (self) {
+            return [_migratings containsObject:migrating];
+        }
+    }
+    
+    return FALSE;
+}
 
 @end

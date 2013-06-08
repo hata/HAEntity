@@ -490,6 +490,12 @@ const static NSString* PROPERTY_TYPE_CLASS_NSData = @"NSData";
     return pluralName;
 }
 
++ (NSArray*) migratings
+{
+    return nil;
+}
+
+
 
 - (id) init
 {

@@ -86,6 +86,12 @@ typedef void (^HABaseEntityEachHandler)(id entity, BOOL* stop);
 + (NSArray*) convertListToArray:(NSString*)condition firstParam:(id)firstParam list:(va_list)args;
 
 
+/**
+ * This is used from HAEntityManager to setup database based on HAEntityMigrating.
+ * @return id<HAEntityMigrating> instances.
+ */
++ (NSArray*) migratings;
+
 #pragma mark -
 #pragma mark instance method
 

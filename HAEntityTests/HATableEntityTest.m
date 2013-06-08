@@ -182,7 +182,9 @@
                                                                           entityClasses:[HATableEntityTestSample1 class], [HATableEntityTestSample6 class], nil];
     HASQLMigration* migration2 = [[HASQLMigration alloc] initWithVersion:1];
     [migration2 addSQLForEntity:[HATableEntityTestSample3 class] upSQL:@"CREATE TABLE table_sample3(numValue INTEGER PRIMARY KEY, stringValue TEXT);" downSQL:nil];
-    [[HAEntityManager instanceForPath:dbFilePath] upToHighestVersion:migration, migration2, nil];
+    [[HAEntityManager instanceForPath:dbFilePath] addEntityMigrating:migration];
+    [[HAEntityManager instanceForPath:dbFilePath] addEntityMigrating:migration2];
+    [[HAEntityManager instanceForPath:dbFilePath] upToHighestVersion];
 }
 
 - (void)tearDown

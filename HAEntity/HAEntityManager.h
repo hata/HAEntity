@@ -61,6 +61,7 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
     FMDatabaseQueue* _dbQueue;
     NSString* _dbFilePath;
     NSMutableSet* _entityClasses;
+    NSMutableArray* _migratings;
 }
 
 #pragma mark -
@@ -186,23 +187,38 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
  * @param toVersion is the highest version which is included.
  * @param migratings are called to migrate.
  */
-- (void) up:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+//- (void) up:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+- (void) up:(NSInteger)toVersion;
 
 /**
  * This is the same as up:INT_MAX migratings:migratings, ...
  */
-- (void) upToHighestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+//- (void) upToHighestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+- (void) upToHighestVersion;
 
 /**
  * migrate to lower version.
  * @param toVersion is the lowest version which is included.
  * @param migratings are called to migrate.
  */
-- (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+//- (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+- (void) down:(NSInteger)toVersion;
 
 /**
  * This is the same as down:INT_MIN migratings:migratings, ...
  */
-- (void) downToLowestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+//- (void) downToLowestVersion:(id<HAEntityMigrating>) migratings, ... NS_REQUIRES_NIL_TERMINATION;
+
+- (void) downToLowestVersion;
+
+- (void) addEntityMigrating:(id<HAEntityMigrating>) migrating;
+
+- (void) removeEntityMigrating:(id<HAEntityMigrating>) migrating;
+
+- (BOOL) isAddedEntityMigrating:(id<HAEntityMigrating>) migrating;
 
 @end

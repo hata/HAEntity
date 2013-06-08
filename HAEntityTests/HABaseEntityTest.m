@@ -316,7 +316,8 @@ static BOOL unprepareIsCalled = FALSE;
                                                                           entityClasses:[HATestDataMock class], [HATestSample1 class],
                                          [HATestSample2 class], [HATestSample3 class], [HATestSample3Having class], [HATestSample4 class],
                                          [HATestSample5 class], nil];
-    [manager upToHighestVersion:migration, nil];
+    [manager addEntityMigrating:migration];
+    [manager upToHighestVersion];
 }
 
 - (void)tearDown
