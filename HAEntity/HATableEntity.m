@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-
+#import "HAEntityManager.h"
 #import "HATableEntity.h"
 
 

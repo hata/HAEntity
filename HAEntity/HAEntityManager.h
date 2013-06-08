@@ -29,7 +29,7 @@
 # define HA_ENTITY_DEBUG(...) do { if ([HAEntityManager isTraceEnabled:HAEntityManagerTraceLevelDebug])  { NSLog(__VA_ARGS__); } } while(0)
 
 #else
-# define LOG(...) ;
+# define HA_LOG(...) ;
 
 # define HA_ENTITY_ERROR(...) ;
 # define HA_ENTITY_WARN(...)  ;
