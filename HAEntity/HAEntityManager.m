@@ -16,6 +16,51 @@
 
 #import "HAEntityManager.h"
 #import "HABaseEntity.h"
+#import "HATableENtity.h"
+#import "HASQLMigration.h"
+
+
+
+// Internal table to manage HAEntity.
+// Right now, I only use this for migration version.
+
+@interface HAEntityInfo : HATableEntity
+
++ (NSString*) tableName;
++ (NSArray*) migratings;
+
+@property NSString* name;
+@property NSString* value;
+@property NSString* info_description;
+
+@end
+
+@implementation HAEntityInfo
+
+static NSString* HAEntityInfoMigrationVersion = @"migration.version";
+
++ (NSString*) tableName
+{
+    return @"ha_entity_info";
+}
+
++ (NSArray*) migratings
+{
+    NSMutableArray* migs = NSMutableArray.new;
+    HASQLMigration* migration = [[HASQLMigration alloc] initWithVersion:INT_MIN];
+    [migration addSQLForEntity:self
+                         upSQL:[NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@ (name TEXT, value TEXT, info_description TEXT);", [self tableName]]
+                       downSQL:[NSString stringWithFormat:@"DROP TABLE %@;", [self tableName]]];
+    [migration addSQLForEntity:self
+                         upSQL:[NSString stringWithFormat:@"INSERT INTO %@ (name, value, info_description) VALUES ('%@', '%d', 'initial migration version.');", [self tableName], HAEntityInfoMigrationVersion, INT_MIN]
+                       downSQL:[NSString stringWithFormat:@"DELETE %@ WHERE name = '%@'",[self tableName], HAEntityInfoMigrationVersion]];
+    [migs addObject:migration];
+    return migs;
+}
+
+@end
+
+
 
 
 @implementation HAEntityManager
@@ -286,114 +331,31 @@ static NSMutableArray* _managerInstances = nil;
     }
 }
 
-/*
 
-- (void) HA_migrate:(BOOL)up toVersion:(NSInteger)toVersion migrating:(id<HAEntityMigrating>)migrating list:(va_list)args
+- (NSInteger) HA_getCurrenMigrationVersion
 {
-    NSMutableArray* migs = [NSMutableArray new];
-    NSInteger fromVersion = up ? INT_MIN : INT_MAX; // TODO: This should get from db.
-
-
-    [migs addObject:migrating];
-    if (args) {
-        migrating = va_arg(args, id<HAEntityMigrating>);
-        while (migrating) {
-            [migs addObject:migrating];
-            migrating = va_arg(args, id<HAEntityMigrating>);
-        }
-    }
-    
-    NSSortDescriptor* sorter = [[NSSortDescriptor alloc] initWithKey:@"version" ascending:up];
-    [migs sortUsingDescriptors:[NSArray arrayWithObject:sorter]];
-    
-    [migs enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        id<HAEntityMigrating> sortedMigrating = obj;
-        
-        if (up) {
-            if (sortedMigrating.version <= fromVersion) {
-                // skip.
-            } else if (sortedMigrating.version <= toVersion) {
+    HAEntityInfo* info = [HAEntityInfo find_first:@"name = ?" params:HAEntityInfoMigrationVersion, nil];
+    if (!info) {
+        NSArray* migs = [HAEntityInfo migratings];
+        for (id<HAEntityMigrating> mig in migs) {
+            
+            [[self class] trace:HAEntityManagerTraceLevelDebug block:^{
+                
                 [self inDatabase:^(FMDatabase *db) {
-                    [obj up:self database:db];
+                    [mig up:self database:db];
                 }];
-            } else {
-                *stop = TRUE;
-            }
-        } else {
-            if (sortedMigrating.version > fromVersion) {
-                // skip.
-            } else if (sortedMigrating.version > toVersion) {
-                [self inDatabase:^(FMDatabase *db) {
-                    [obj down:self database:db];
-                }];
-            } else {
-                *stop = TRUE;
-            }
+            }];
         }
-    }];
-    
-    // TODO: Set a new version to metadata table.
-}
-
-
-- (void) up:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ...
-{
-    if (!migratings) {
-        return;
-    }
-    
-    va_list args;
-    va_start(args,migratings);
-    va_end(args);
-    
-    [self HA_migrate:TRUE toVersion:toVersion migrating:migratings list:args];
-}
-
-
-- (void) upToHighestVersion:(id<HAEntityMigrating>) migratings, ...
-{
-    if (!migratings) {
-        return;
-    }
-    
-    va_list args;
-    va_start(args,migratings);
-    va_end(args);
-    
-    [self HA_migrate:TRUE toVersion:INT_MAX migrating:migratings list:args];
-}
-
-- (void) down:(NSInteger)toVersion migratings:(id<HAEntityMigrating>) migratings, ...
-{
-    if (!migratings) {
-        return;
+        info = [HAEntityInfo find_first:@"name = ?" params:HAEntityInfoMigrationVersion, nil];
     }
 
-    va_list args;
-    va_start(args,migratings);
-    va_end(args);
-    
-    [self HA_migrate:FALSE toVersion:toVersion migrating:migratings list:args];
+    return [info.value integerValue];
 }
-
-- (void) downToLowestVersion:(id<HAEntityMigrating>) migratings, ...
-{
-    if (!migratings) {
-        return;
-    }
-    
-    va_list args;
-    va_start(args,migratings);
-    va_end(args);
-    
-    [self HA_migrate:FALSE toVersion:INT_MIN migrating:migratings list:args];
-}
-*/
-
 
 - (void) HA_applyMigratingsWithOrder:(BOOL)up toVersion:(NSInteger)toVersion
 {
-    NSInteger fromVersion = up ? INT_MIN : INT_MAX; // TODO: This should get from db.
+//    NSInteger fromVersion = up ? INT_MIN : INT_MAX; // TODO: This should get from db.
+    NSInteger fromVersion = [self HA_getCurrenMigrationVersion];
 
     NSMutableArray* allMigratings = NSMutableArray.new;
     if (_entityClasses) {
@@ -426,6 +388,9 @@ static NSMutableArray* _managerInstances = nil;
             } else if (sortedMigrating.version <= toVersion) {
                 [self inDatabase:^(FMDatabase *db) {
                     [sortedMigrating up:self database:db];
+                    [db executeUpdate:[NSString stringWithFormat:@"UPDATE %@ SET value = ? WHERE name = '%@'", [HAEntityInfo tableName], HAEntityInfoMigrationVersion],
+                     [NSString stringWithFormat:@"%d", sortedMigrating.version]];
+                    // TODO: NEED TO UPDATE VERSION IN HAENTITYINFO
                 }];
             } else {
                 *stop = TRUE;
@@ -436,6 +401,9 @@ static NSMutableArray* _managerInstances = nil;
             } else if (sortedMigrating.version > toVersion) {
                 [self inDatabase:^(FMDatabase *db) {
                     [sortedMigrating down:self database:db];
+                    [db executeUpdate:[NSString stringWithFormat:@"UPDATE %@ SET value = ? WHERE name = '%@'", [HAEntityInfo tableName], HAEntityInfoMigrationVersion],
+                     [NSString stringWithFormat:@"%d", sortedMigrating.version]];
+                    // TODO: NEED TO UPDATE VERSION IN HAENTITYINFO
                 }];
             } else {
                 *stop = TRUE;
@@ -514,3 +482,5 @@ static NSMutableArray* _managerInstances = nil;
 }
 
 @end
+
+

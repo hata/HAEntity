@@ -146,6 +146,13 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     [super tearDown];
 }
 
+- (void)changeCurrentMigration:(HAEntityManager*)manager toVersion:(NSInteger)toVersion
+{
+    // Up to upper version to test down.
+    [manager addEntityMigrating:[[HAEntityManagerTestMigration alloc] initWithVersion:toVersion]];
+    [manager upToHighestVersion];
+}
+
 - (void)testInitialInstance
 {
     STAssertNil([HAEntityManager instance], @"Verify default is nil.");
@@ -408,7 +415,8 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
 - (void)testDownMin
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
-
+    [self changeCurrentMigration:manager toVersion:4];
+    
     HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
     HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
     HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
@@ -430,6 +438,7 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
 - (void)testDownSomeVersions
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    [self changeCurrentMigration:manager toVersion:4];
 
     HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
     HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
@@ -452,6 +461,7 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
 - (void)testDownNoVersion
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    [self changeCurrentMigration:manager toVersion:4];
 
     HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
     HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
@@ -488,12 +498,19 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     
     [manager up:INT_MAX];
     STAssertEqualObjects(@"1,2,3", [upOrder componentsJoinedByString:@","], @"Verify call order.");
+}
 
-    [upOrder removeAllObjects];
+- (void)testUpToMaxCheckOrderWhenAddingWrongSortOrder
+{
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
 
-    [manager removeEntityMigrating:migration1];
-    [manager removeEntityMigrating:migration2];
-    [manager removeEntityMigrating:migration3];
+    NSMutableArray* upOrder = [NSMutableArray new];
+    NSMutableArray* downOrder = [NSMutableArray new];
+    
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3 upOrder:upOrder downOrder:downOrder];
+
     [manager addEntityMigrating:migration3];
     [manager addEntityMigrating:migration2];
     [manager addEntityMigrating:migration1];
@@ -511,6 +528,7 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2 upOrder:upOrder downOrder:downOrder];
     HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3 upOrder:upOrder downOrder:downOrder];
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    [self changeCurrentMigration:manager toVersion:4];
     
     [manager addEntityMigrating:migration1];
     [manager addEntityMigrating:migration2];
@@ -518,12 +536,20 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     
     [manager down:INT_MIN];
     STAssertEqualObjects(@"3,2,1", [downOrder componentsJoinedByString:@","], @"Verify call order.");
+}
+
+- (void)testDownMinCheckOrderWhenAddedWrongOrder
+{
+    NSMutableArray* upOrder = [NSMutableArray new];
+    NSMutableArray* downOrder = [NSMutableArray new];
     
-    [downOrder removeAllObjects];
-    
-    [manager removeEntityMigrating:migration1];
-    [manager removeEntityMigrating:migration2];
-    [manager removeEntityMigrating:migration3];
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2 upOrder:upOrder downOrder:downOrder];
+    HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3 upOrder:upOrder downOrder:downOrder];
+
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    [self changeCurrentMigration:manager toVersion:4];
+
     [manager addEntityMigrating:migration3];
     [manager addEntityMigrating:migration2];
     [manager addEntityMigrating:migration1];
@@ -566,6 +592,7 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
 {
     HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    [self changeCurrentMigration:manager toVersion:4];
     
     [manager addEntityMigrating:migration1];
 
@@ -598,6 +625,7 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
     HAEntityManagerTestMigration* migration3 = [[HAEntityManagerTestMigration alloc] initWithVersion:3];
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    [self changeCurrentMigration:manager toVersion:4];
     
     [manager addEntityMigrating:migration1];
     [manager addEntityMigrating:migration2];
@@ -644,5 +672,47 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     HAEntityManagerTestMigration* migration = (HAEntityManagerTestMigration*)[HAEntityManagerTestSample currentMigrating];
     STAssertEquals(1, migration.upCount, @"Verify entity's migratings are called.");
 }
+
+- (void) testHAEntityInfoIsUsedWhileMigration
+{
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    HAEntityManagerTestMigration* migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    [manager addEntityMigrating:migration1];
+    [manager upToHighestVersion];
+
+    __block int dbValue = 0;
+    [manager inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:@"SELECT name, value FROM ha_entity_info WHERE name = 'migration.version'"];
+        while ([rset next]) {
+            dbValue = [rset intForColumn:@"value"];
+        }
+    }];
+    
+    STAssertEquals(1, dbValue, @"Verify stored value.");
+    [manager close];
+
+
+    manager = [HAEntityManager instanceForPath:dbFilePath];
+    migration1 = [[HAEntityManagerTestMigration alloc] initWithVersion:1];
+    HAEntityManagerTestMigration* migration2 = [[HAEntityManagerTestMigration alloc] initWithVersion:2];
+    [manager addEntityMigrating:migration1];
+    [manager addEntityMigrating:migration2];
+    [manager upToHighestVersion];
+
+    
+    dbValue = 0;
+    [manager inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:@"SELECT name, value FROM ha_entity_info WHERE name = 'migration.version'"];
+        while ([rset next]) {
+            dbValue = [rset intForColumn:@"value"];
+        }
+    }];
+    
+    STAssertEquals(2, dbValue, @"Verify stored value is updated.");
+    STAssertEquals(0, migration1.upCount, @"Verify version 1 is not called.");
+    [manager close];
+}
+
+
 
 @end
