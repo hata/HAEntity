@@ -279,7 +279,20 @@ static NSMutableArray* _managerInstances = nil;
     } else {
         // This should be catched in the first transaction block and should rollback.
         // This code should not be called.
-        [[NSException exceptionWithName:@"TransactionIsOpened" reason:@"Try to open db transaction twice." userInfo:nil] raise];
+        //[[NSException exceptionWithName:@"TransactionIsOpened" reason:@"Try to open db transaction twice." userInfo:nil] raise];
+
+        // This is handled to call inTransaction within inTransaction block.
+        // manager inTransaction:^{
+        //   ...
+        //   manager inTransaction:^{
+        //   ...
+        // }
+        // This may occur while calling methods.
+        BOOL rollback = FALSE;
+        block(currentDatabase, &rollback);
+        if (rollback) {
+            [[NSException exceptionWithName:@"TransactionRollback" reason:@"rollback is set while invoking block." userInfo:nil] raise];
+        }
     }
 }
 

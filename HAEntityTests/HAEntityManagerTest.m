@@ -315,7 +315,7 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     STAssertFalse(result, @"Verify INSERT SQLs are failed.");
 }
 
-- (void)testTransactionBlockTwiceIsRollbacked
+- (void)testTransactionBlockTwiceIsAccepted
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
     
@@ -328,13 +328,77 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
         result1 = [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
         [[HAEntityManager instanceForPath:dbFilePath] inTransaction:^(FMDatabase *db2, BOOL *rollback2) {
-            result2 = TRUE;
-            [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:3]];
+            result2 = [db2 executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:3]];
         }];
     }];
     
     STAssertTrue(result1, @"Verify first insert should work well.");
-    STAssertFalse(result2, @"Verify 2nd insert should not called.");
+    STAssertTrue(result2, @"Verify 2nd insert should also work well.");
+
+    result1 = FALSE;
+    __block BOOL result = FALSE;
+    [manager inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:@"SELECT * FROM test;"];
+        result1 = TRUE;
+        result = [rset next];
+    }];
+
+    STAssertTrue(result1, @"inDatabase sql is called.");
+    STAssertTrue(result, @"Verify INSERT SQLs are not rollbacked.");
+}
+
+
+- (void)testTransactionBlock2ndBlockRollbackShouldWork
+{
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
+        [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
+    }];
+    
+    __block BOOL result1 = FALSE;
+    __block BOOL result2 = FALSE;
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
+        result1 = [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
+        [[HAEntityManager instanceForPath:dbFilePath] inTransaction:^(FMDatabase *db2, BOOL *rollback2) {
+            result2 = [db2 executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:3]];
+            *rollback = TRUE;
+        }];
+    }];
+    
+    STAssertTrue(result1, @"Verify first insert should work well.");
+    STAssertTrue(result2, @"Verify 2nd insert should be called.");
+    
+    __block BOOL result = FALSE;
+    [manager inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:@"SELECT * FROM test;"];
+        result = [rset next];
+    }];
+    
+    STAssertFalse(result, @"Verify INSERT SQLs are rollbacked.");
+}
+
+
+- (void)testTransactionBlock1stTxnSetRollbackAfter2ndBlockIsFinished
+{
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
+        [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
+    }];
+    
+    __block BOOL result1 = FALSE;
+    __block BOOL result2 = FALSE;
+    [manager inTransaction:^(FMDatabase *db, BOOL* rollback) {
+        result1 = [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
+        [[HAEntityManager instanceForPath:dbFilePath] inTransaction:^(FMDatabase *db2, BOOL *rollback2) {
+            result2 = [db2 executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:3]];
+        }];
+        *rollback = TRUE;
+    }];
+    
+    STAssertTrue(result1, @"Verify first insert should work well.");
+    STAssertTrue(result2, @"Verify 2nd insert should also work well.");
     
     __block BOOL result = FALSE;
     [manager inDatabase:^(FMDatabase *db) {
