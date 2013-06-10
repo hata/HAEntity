@@ -23,6 +23,7 @@
 		4B41D23C172272A4006248DA /* HAPListMigration.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D23B172272A4006248DA /* HAPListMigration.m */; };
 		4B41D23E1722757A006248DA /* migration-test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4B41D23D1722757A006248DA /* migration-test.plist */; };
 		4B41D24117227AA3006248DA /* HAPListMigrationTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B41D24017227AA3006248DA /* HAPListMigrationTest.m */; };
+		4B5A2AF6176550F500E34744 /* HASampleTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B5A2AF5176550F500E34744 /* HASampleTest.m */; };
 		4BB63D511719D24300CF0A0C /* HAEntityManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB63D501719D24300CF0A0C /* HAEntityManager.m */; };
 		4BB63D541719D28600CF0A0C /* HAEntityManagerTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 4BB63D531719D28600CF0A0C /* HAEntityManagerTest.m */; };
 		4BBC68F81719D93A008D1775 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BBC68F71719D93A008D1775 /* libPods.a */; };
@@ -86,6 +87,8 @@
 		4B41D23D1722757A006248DA /* migration-test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "migration-test.plist"; sourceTree = "<group>"; };
 		4B41D23F17227AA3006248DA /* HAPListMigrationTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAPListMigrationTest.h; sourceTree = "<group>"; };
 		4B41D24017227AA3006248DA /* HAPListMigrationTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAPListMigrationTest.m; sourceTree = "<group>"; };
+		4B5A2AF4176550F500E34744 /* HASampleTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HASampleTest.h; sourceTree = "<group>"; };
+		4B5A2AF5176550F500E34744 /* HASampleTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HASampleTest.m; sourceTree = "<group>"; };
 		4BB63D4F1719D24300CF0A0C /* HAEntityManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityManager.h; sourceTree = "<group>"; };
 		4BB63D501719D24300CF0A0C /* HAEntityManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HAEntityManager.m; sourceTree = "<group>"; };
 		4BB63D521719D28600CF0A0C /* HAEntityManagerTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HAEntityManagerTest.h; sourceTree = "<group>"; };
@@ -141,7 +144,6 @@
 		4B291F361719CEC500226D8C = {
 			isa = PBXGroup;
 			children = (
-				4BBC68F91719D9C5008D1775 /* libsqlite3.dylib */,
 				4B291F441719CEC500226D8C /* HAEntity */,
 				4B291F591719CEC500226D8C /* HAEntityTests */,
 				4B291F411719CEC500226D8C /* Frameworks */,
@@ -165,6 +167,7 @@
 				4B291F421719CEC500226D8C /* Foundation.framework */,
 				4B291F511719CEC500226D8C /* SenTestingKit.framework */,
 				4B291F531719CEC500226D8C /* UIKit.framework */,
+				4BBC68F91719D9C5008D1775 /* libsqlite3.dylib */,
 				B54938FEC7E9446ABA70AFA9 /* libPods.a */,
 			);
 			name = Frameworks;
@@ -225,6 +228,8 @@
 				4B2AF0DA17449A6300F093F6 /* HAEntityPropertyInfoTest.m */,
 				4B3076BD1736D05300FC4E55 /* HAEntityPerfTest.h */,
 				4B3076BE1736D05300FC4E55 /* HAEntityPerfTest.m */,
+				4B5A2AF4176550F500E34744 /* HASampleTest.h */,
+				4B5A2AF5176550F500E34744 /* HASampleTest.m */,
 				4BBC68F71719D93A008D1775 /* libPods.a */,
 				4B291F5A1719CEC500226D8C /* Supporting Files */,
 			);
@@ -394,6 +399,7 @@
 				4B41D24117227AA3006248DA /* HAPListMigrationTest.m in Sources */,
 				4B3076BF1736D05300FC4E55 /* HAEntityPerfTest.m in Sources */,
 				4B2AF0DB17449A6300F093F6 /* HAEntityPropertyInfoTest.m in Sources */,
+				4B5A2AF6176550F500E34744 /* HASampleTest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -17,7 +17,6 @@
 #import "HAEntityManager.h"
 #import "HATableEntity.h"
 
-
 @implementation HATableEntity
 
 NSString* ROW_ID_COLUMN_NAME = @"rowid";
@@ -45,6 +44,20 @@ static NSCache* CACHE_TABLE = nil;
     [[NSException exceptionWithName:@"NoTableNameFoundException" reason:exceptionReason userInfo:nil] raise];
     return nil;
 }
+
+/*
+ * If I created this, it may be easy for 1 entity. But,
+ * now, I changed migration to use db. So,
+ * the version number should set correct one.
+ * From this, I comment out this basic behavior.
+ * use should do explicitly.
++ (NSArray*) migratings
+{
+    NSMutableArray* migs = NSMutableArray.new;
+    [migs addObject:[[HATableEntityMigration alloc] initWithVersion:1 entityClasses:self, nil]];
+    return migs;
+}
+ */
 
 + (NSString*) join
 {
