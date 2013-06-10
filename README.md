@@ -1,15 +1,15 @@
-HAEntity
-========
+# HAEntity
 
 HAEntity is a library written by objective-c to access sqlite database via FMDB
 
 
-Usage
--------
+## Usage
 
-* Basic usage (ref HAEntityTests/HASampleTest testSample1 )
-It is required to initialize `HAEntityManager`, setup database, and then use a class
-derived from HABaseEntity.
+### Basic usage
+(ref HAEntityTests/HASampleTest testSample1 )
+
+The basic step to use this library, initialize `HAEntityManager`, setup database,
+and then use classes derived from HABaseEntity.
 
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
 
@@ -54,7 +54,7 @@ You can confirm the returned instance have your saved information.
 
 
 
-* License
+## License
   Apache 2.0
 
 
