@@ -347,6 +347,30 @@ static NSMutableArray* _managerInstances = nil;
 
 - (NSInteger) HA_getCurrenMigrationVersion
 {
+    NSString* queryString = [NSString stringWithFormat:@"SELECT value FROM %@ WHERE name = ?", [HAEntityInfo tableName]];
+
+    __block NSInteger migrationVersion = INT_MIN;
+    [self inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:queryString, HAEntityInfoMigrationVersion];
+        if ([rset next]) {
+            migrationVersion = [rset intForColumn:@"value"];
+            [rset close];
+        } else {
+            [rset close];
+            NSArray* migs = [HAEntityInfo migratings];
+            for (id<HAEntityMigrating> mig in migs) {
+                [mig up:self database:db];
+            }
+            rset = [db executeQuery:queryString, HAEntityInfoMigrationVersion];
+            if ([rset next]) {
+                migrationVersion = [rset intForColumn:@"value"];
+            }
+            [rset close];
+        }
+    }];
+    
+/*
+ // If I used HAEntityInfo, multiple instance may not work well.
     HAEntityInfo* info = [HAEntityInfo find_first:@"name = ?" params:HAEntityInfoMigrationVersion, nil];
     if (!info) {
         NSArray* migs = [HAEntityInfo migratings];
@@ -363,6 +387,8 @@ static NSMutableArray* _managerInstances = nil;
     }
 
     return [info.value integerValue];
+ */
+    return migrationVersion;
 }
 
 - (void) HA_applyMigratingsWithOrder:(BOOL)up toVersion:(NSInteger)toVersion
