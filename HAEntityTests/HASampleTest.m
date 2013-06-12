@@ -91,4 +91,50 @@
     STAssertEquals(101, sample.price, @"Verify price is saved successfully.");
 }
 
+- (void) testSample2
+{
+    // Init sqlite file.
+    HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];
+    HASampleTestSample1* sample = nil;
+    NSArray* result = nil;
+    NSUInteger correct;
+
+    // Create a new table based on the class properties.
+    HATableEntityMigration* migration = [[HATableEntityMigration alloc] initWithVersion:1 entityClasses:[HASampleTestSample1 class], nil];
+    [manager addEntityMigrating:migration];
+    [manager upToHighestVersion];
+    
+    // Create new instances and then set new values.
+    for (int i = 0;i < 10;i++) {
+        sample = HASampleTestSample1.new;
+        sample.name = [NSString stringWithFormat:@"foo %d", i];
+        sample.details = [NSString stringWithFormat:@"bar %d", i];
+        sample.price = 100 + i;
+        [sample save];
+    }
+
+    // Run select.
+    result = [HASampleTestSample1 select:@"price FROM sample1 WHERE name = ?" params:@"foo 0", nil];
+    correct = 1;
+    STAssertEquals(correct, result.count, @"Verify query result.");
+    sample = [result objectAtIndex:0];
+    STAssertEquals(100, sample.price, @"First row should be returned.");
+
+    // Run where.
+    result = [HASampleTestSample1 where:@"price < ?" params:[NSNumber numberWithInt:105], nil];
+    correct = 5;
+    STAssertEquals(correct, result.count, @"Verify query result.");
+
+    // order
+    result = [HASampleTestSample1 order_by:@"price desc"];
+    correct = 10;
+    STAssertEquals(correct, result.count, @"Verify query result.");
+    sample = [result objectAtIndex:0];
+    STAssertEquals(109, sample.price, @"Last row should be returned.");
+
+}
+
+
+
+
 @end
