@@ -246,8 +246,12 @@ static NSMutableArray* _managerInstances = nil;
                 block(db);
             }
             @catch (NSException *exception) {
+                [db rollback];
                 // TODO: Handle error.
                 HA_LOG(@"Exception is thrown while using inDatabase %@", exception);
+                HA_LOG(@"%@", exception.name);
+                HA_LOG(@"%@", exception.reason);
+                HA_LOG(@"%@", exception.callStackSymbols);
             }
             @finally {
             }

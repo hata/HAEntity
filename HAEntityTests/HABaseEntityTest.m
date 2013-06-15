@@ -1355,4 +1355,31 @@ static BOOL unprepareIsCalled = FALSE;
     STAssertEqualObjects(@"foo", sample.stringValue, @"Verify stored value.");
 }
 
+/*
+ * It may be better to find a way to recover the exception.
+ *
+- (void)testVerifyExceptionWithWrongNumberOfParams
+{
+    [self createSample3:1 stringValue:@"foo"];
+
+    NSUInteger correctResult = 0;
+    
+    NSMutableArray* entities = [NSMutableArray new];
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } where:@"numValue = ?" params:nil];
+
+    STAssertEquals(correctResult, entities.count, @"Error should return nothing.");
+    
+    correctResult = 1;
+    
+    entities = [NSMutableArray new];
+    [HATestSample3 where_each:^(id entity, BOOL *stop) {
+        [entities addObject:entity];
+    } where:@"numValue = ?" params:[NSNumber numberWithInt:1], nil];
+    
+    STAssertEquals(correctResult, entities.count, @"Correct value after Exception.");
+}
+*/
+
 @end
