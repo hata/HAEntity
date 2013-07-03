@@ -60,6 +60,7 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
 @private
     FMDatabaseQueue* _dbQueue;
     NSString* _dbFilePath;
+    NSString* _backupPath;
     NSMutableSet* _entityClasses;
     NSMutableArray* _migratings;
 }
@@ -81,6 +82,9 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
  * an instance for dbFilePath if the instance exists.
  */
 + (HAEntityManager*) instanceForPath:(NSString*)dbFilePath;
+
+
++ (HAEntityManager*) instanceForPath:(NSString*)dbFilePath backupPath:(NSString*)backupPath;
 
 
 /**
@@ -115,6 +119,17 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
  */
 - (id) initWithFilePath:dbFilePath;
 
+/**
+ * Initialize this instace with database file path and backup file path.
+ * backup file path is used to copy when opening a file for dbFilePath.
+ * And while opening the database, dbFilePath is used. Afte closing the
+ * db, then copy the working file to backupPath.
+ * This is used to avoid corrupt the working database file bacause of
+ * crash.
+ * @param dbFilePath working db file path.
+ * @param backupPath a valid database path.
+ */
+- (id) initWithFilePath:dbFilePath backupPath:backupPath;
 
 /**
  * close database and set to nil to avoid accessing the db anymore.

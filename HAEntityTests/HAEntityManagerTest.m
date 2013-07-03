@@ -164,6 +164,83 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     STAssertNotNil([HAEntityManager instance], @"Verify default is not nil after creating an instance.");
 }
 
+- (void)testInstanceWithDBPathAndBackupPath
+{
+    [HAEntityManager instanceForPath:dbFilePath backupPath:dbFilePath2];
+    STAssertNotNil([HAEntityManager instance], @"Verify default is not nil after creating an instance.");
+}
+
+- (void)testInstanceWithDBPathAndBackupPathCloseAndOpen
+{
+    NSError* error = nil;
+    NSFileManager* fileManager;
+    HAEntityManager* manager;
+    BOOL result;
+
+    manager = [HAEntityManager instanceForPath:dbFilePath backupPath:dbFilePath2];
+    [manager inDatabase:^(FMDatabase *db) {
+        [db executeUpdate:@"CREATE TABLE test(id NUMERIC);"];
+    }];
+
+    fileManager = [NSFileManager defaultManager];
+    STAssertFalse([fileManager fileExistsAtPath:dbFilePath2], @"Verify there is no file yet.");
+
+    [manager close];
+    
+    STAssertTrue([fileManager fileExistsAtPath:dbFilePath2], @"Verify there is a new file after close.");
+    
+    manager = [HAEntityManager instanceForPath:dbFilePath backupPath:dbFilePath2];
+    [manager inDatabase:^(FMDatabase *db) {
+        [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
+    }];
+
+    [manager close];
+
+    result = [fileManager removeItemAtPath:dbFilePath error:&error];
+    STAssertTrue(result, @"File should be removed.");
+    
+    manager = [HAEntityManager instanceForPath:dbFilePath backupPath:dbFilePath2];
+    __block int rowCount = 0;
+    [manager inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:@"SELECT count(*) FROM test;"];
+        while ([rset next]) {
+            rowCount = [rset intForColumnIndex:0];
+            break;
+        }
+        [rset close];
+    }];
+
+    STAssertEquals(1, rowCount, @"Verify inserted row exists nevertheless dbFilePath is removed.");
+
+    manager = [HAEntityManager instanceForPath:dbFilePath backupPath:dbFilePath2];
+    [manager inDatabase:^(FMDatabase *db) {
+        [db executeUpdate:@"INSERT INTO test(id) VALUES (?);", [NSNumber numberWithInt:2]];
+    }];
+
+//    error = nil;
+//    result = [fileManager removeItemAtPath:dbFilePath error:&error];
+//    STAssertTrue(result, @"Verify remove file works well.");
+
+    // Create a new instance after removing working db file.
+    // This is simulating a crash process and then restart it.
+    manager = [[HAEntityManager alloc] initWithFilePath:dbFilePath backupPath:dbFilePath2];
+
+    // The row count is not updated because latest file is broken.
+    // So, this result should return 1 row only.
+    [manager inDatabase:^(FMDatabase *db) {
+        FMResultSet* rset = [db executeQuery:@"SELECT count(*) FROM test;"];
+        while ([rset next]) {
+            rowCount = [rset intForColumnIndex:0];
+            break;
+        }
+        [rset close];
+    }];
+    
+    STAssertEquals(1, rowCount, @"Verify inserted row exists nevertheless dbFilePath is removed.");
+    
+}
+
+
 - (void)testInstanceWithEntity
 {
     HAEntityManager* manager = [HAEntityManager instanceForPath:dbFilePath];

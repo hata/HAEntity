@@ -81,30 +81,36 @@ static NSMutableArray* _managerInstances = nil;
 
 + (HAEntityManager*) instanceForPath:(NSString*)dbFilePath
 {
+    return [self instanceForPath:dbFilePath backupPath:nil];
+}
+
++ (HAEntityManager*) instanceForPath:(NSString*)dbFilePath backupPath:(NSString*)backupPath
+{
     @synchronized(SYNC_OBJECT) {
-        if (nil == dbFilePath) {
+        if (!dbFilePath) {
             return _defaultInstance;
         } else {
-            if (nil == _managerInstances) {
+            if (!_managerInstances) {
                 _managerInstances = [NSMutableArray new];
             }
-
+            
             for (HAEntityManager* manager in _managerInstances) {
-                if ([[manager HA_dbFilePath] isEqualToString:dbFilePath]) {
+                if ([[manager HA_dbFilePath] isEqualToString:dbFilePath] && ((!backupPath) || [backupPath isEqualToString:[manager HA_backupFilePath]])) {
                     return manager;
                 }
             }
             
-            HAEntityManager* manager = [[HAEntityManager alloc] initWithFilePath:dbFilePath];
+            HAEntityManager* manager = [[HAEntityManager alloc] initWithFilePath:dbFilePath backupPath:backupPath];
             if (nil == _defaultInstance) {
                 _defaultInstance = manager;
             }
             [_managerInstances addObject:manager];
-
+            
             return manager;
         }
     }
 }
+
 
 + (HAEntityManager*) instanceForEntity:(Class)entityClass
 {
@@ -161,12 +167,89 @@ static NSMutableArray* _managerInstances = nil;
     return _dbFilePath;
 }
 
+- (NSString*) HA_backupFilePath
+{
+    return _backupPath;
+}
+
+- (BOOL) HA_copyFileAtPath:(NSString*)srcPath toPath:(NSString*)toPath error:(NSError**)errorPtr
+{
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    
+    if (![fileManager fileExistsAtPath:srcPath]) {
+        // There is no srcPath.
+        return FALSE;
+    }
+
+    // If there is no toPath, then just copy it.
+    if (![fileManager fileExistsAtPath:toPath]) {
+        return [fileManager copyItemAtPath:srcPath toPath:toPath error:errorPtr];
+    }
+
+    // Clean old temp file if it exists.
+    NSString* tempFilePath = [NSString stringWithFormat:@"%@.tmp", toPath];
+    if ([fileManager fileExistsAtPath:tempFilePath]) {
+        if (![fileManager removeItemAtPath:tempFilePath error:errorPtr]) {
+            return FALSE;
+        }
+    }
+
+    // Create a temp file.
+    if (![fileManager copyItemAtPath:srcPath toPath:tempFilePath error:errorPtr]) {
+        // If there is an error while copying srcPath to tmp file.
+        NSError* ignoreError = nil;
+        [fileManager removeItemAtPath:tempFilePath error:&ignoreError];
+        return FALSE;
+    }
+
+    // Replace file to toPath from tempFile.
+    NSURL* resultingItemURL = nil;
+    if(![fileManager replaceItemAtURL:[NSURL fileURLWithPath:toPath]
+                        withItemAtURL:[NSURL fileURLWithPath:tempFilePath]
+                       backupItemName:nil
+                              options:0
+                     resultingItemURL:&resultingItemURL
+                                error:errorPtr]) {
+        return FALSE;
+    }
+    
+    return TRUE;
+}
 
 - (id) initWithFilePath:dbFilePath
 {
     if (self = [super init]) {
         _dbQueue = [FMDatabaseQueue databaseQueueWithPath:dbFilePath];
         _dbFilePath = dbFilePath;
+        _backupPath = nil;
+        _entityClasses = nil;
+    }
+    return self;
+}
+
+- (id) initWithFilePath:dbFilePath backupPath:backupPath
+{
+    if (self = [super init]) {
+        _dbFilePath = dbFilePath;
+        _backupPath = backupPath;
+
+        if (_backupPath) {
+            NSError* error = nil;
+            NSFileManager* fileManager = [NSFileManager defaultManager];
+            if ([fileManager fileExistsAtPath:_backupPath]) {
+                [self HA_copyFileAtPath:_backupPath toPath:_dbFilePath error:&error];
+            } else if ([fileManager fileExistsAtPath:_dbFilePath]) {
+                // TODO: What is the best way to handle old file.
+                // Right now, to remove old file when there is no backup
+                // to initialize it.
+                [fileManager removeItemAtPath:_dbFilePath error:&error];
+            }
+            if (error) {
+                //
+            }
+        }
+        
+        _dbQueue = [FMDatabaseQueue databaseQueueWithPath:dbFilePath];
         _entityClasses = nil;
     }
     return self;
@@ -174,16 +257,29 @@ static NSMutableArray* _managerInstances = nil;
 
 - (void) close
 {
-    [_dbQueue close];
-    _dbQueue = nil;
-    
     @synchronized(SYNC_OBJECT) {
         if (self == _defaultInstance) {
             _defaultInstance = nil;
         }
 
-        if (nil != _dbFilePath) {
+        if (_dbFilePath) {
             [_managerInstances removeObject:self];
+        }
+    }
+
+    [_dbQueue close];
+    _dbQueue = nil;
+
+    // If there is a backup path. After closing db, copy the file
+    // to backup file to use next open.
+    if (_backupPath) {
+        NSError* error = nil;
+        NSFileManager* fileManager = [NSFileManager defaultManager];
+        if ([fileManager fileExistsAtPath:_dbFilePath]) {
+            [self HA_copyFileAtPath:_dbFilePath toPath:_backupPath error:&error];
+        }
+        if (error) {
+            //
         }
     }
 }
