@@ -181,6 +181,17 @@ typedef enum HAEntityManagerTraceLevel : NSInteger {
 - (void) inTransaction:(void (^)(FMDatabase *db, BOOL *rollback))block;
 
 
+
+/**
+ * When the same entity class is used in several EntityManager,
+ * this block can use a specific HAEntityManager instance.
+ * This can affect for instance method and instanceForEntity method.
+ * instance:dbPath is not affected because it points a specific instance.
+ * This can help to test this classes using different file.
+ */
+- (void) useInstance:(void (^)(HAEntityManager* entityManager))block;
+
+
 /**
  * Add HABaseEntity class to this instance. After adding it,
  * instanceForEntity can return this EntityManager instance

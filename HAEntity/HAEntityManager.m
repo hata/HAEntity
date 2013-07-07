@@ -65,6 +65,7 @@ static NSString* HAEntityInfoMigrationVersion = @"migration.version";
 
 @implementation HAEntityManager
 
+const static NSString* THREAD_LOCAL_KEY_HAENTITY_MANAGER_INSTANCE = @"HAEntityManager::useInstance";
 const static NSString* THREAD_LOCAL_KEY_HAENTITY_MANAGER_IN_TRANS_FMDATABASE = @"HAEntityManager::InTransactionFMDatabase";
 const static NSString* THREAD_LOCAL_KEY_HAENTITY_MANAGER_TRACE_LEVEL = @"HAEntityManager::TraceLevel";
 
@@ -86,6 +87,11 @@ static NSMutableArray* _managerInstances = nil;
 
 + (HAEntityManager*) instanceForPath:(NSString*)dbFilePath backupPath:(NSString*)backupPath
 {
+    HAEntityManager* threadEntityManager = [self instanceForThread];
+    if ((!dbFilePath) && threadEntityManager) {
+        return threadEntityManager;
+    }
+    
     @synchronized(SYNC_OBJECT) {
         if (!dbFilePath) {
             return _defaultInstance;
@@ -114,6 +120,11 @@ static NSMutableArray* _managerInstances = nil;
 
 + (HAEntityManager*) instanceForEntity:(Class)entityClass
 {
+    HAEntityManager* threadEntityManager = [self instanceForThread];
+    if (threadEntityManager) {
+        return threadEntityManager;
+    }
+
     // TODO: It may be better to more effective code...
     @synchronized(SYNC_OBJECT) {
         // If there is only 1 instance, then return a default one
@@ -136,6 +147,12 @@ static NSMutableArray* _managerInstances = nil;
         
         return entityManager;
     }
+}
+
+
++ (HAEntityManager*) instanceForThread
+{
+    return [[[NSThread currentThread] threadDictionary] objectForKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_INSTANCE];
 }
 
 
@@ -395,6 +412,23 @@ static NSMutableArray* _managerInstances = nil;
         }
     }
 }
+
+
+- (void) useInstance:(void (^)(HAEntityManager* entityManager))block
+{
+    NSMutableDictionary* threadLocal = [[NSThread currentThread] threadDictionary];
+    @try {
+        [threadLocal setObject:self forKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_INSTANCE];
+        block(self);
+    }
+    @catch (NSException *exception) {
+        HA_LOG(@"exception is thrown in useInstance. %@", exception);
+    }
+    @finally {
+        [threadLocal removeObjectForKey:THREAD_LOCAL_KEY_HAENTITY_MANAGER_INSTANCE];
+    }
+}
+
 
 
 - (void) addEntityClass:(Class)entityClass

@@ -264,6 +264,65 @@ static id<HAEntityMigrating> entityManagerTestSampleMigrating = nil;
     STAssertEqualObjects(manager2, [HAEntityManager instanceForEntity:nil], @"Verify a default manager is returened for nil.");
 }
 
+
+- (void) testInstanceDefaultForThread
+{
+    HAEntityManager* manager1 = [HAEntityManager instanceForPath:dbFilePath];
+    HAEntityManager* manager2 = [HAEntityManager instanceForPath:dbFilePath2];
+
+
+    __block HAEntityManager* threadManager1;
+    [manager1 useInstance:^(HAEntityManager *entityManager) {
+        threadManager1 = [HAEntityManager instance];
+    }];
+
+    __block HAEntityManager* threadManager2;
+    [manager2 useInstance:^(HAEntityManager *entityManager) {
+        threadManager2 = [HAEntityManager instance];
+    }];
+
+    STAssertEqualObjects(threadManager1, manager1, @"Verify block's manager for manager1.");
+    STAssertEqualObjects(threadManager2, manager2, @"Verify block's manager for manager2.");
+}
+
+
+- (void) testInstanceForPathForThread
+{
+    HAEntityManager* manager1 = [HAEntityManager instanceForPath:dbFilePath];
+    HAEntityManager* manager2 = [HAEntityManager instanceForPath:dbFilePath2];
+    
+    
+    __block HAEntityManager* threadManager1;
+    [manager1 useInstance:^(HAEntityManager *entityManager) {
+        threadManager1 = [HAEntityManager instanceForPath:dbFilePath2];
+    }];
+    
+    STAssertEqualObjects(threadManager1, manager2, @"Verify instaceForPath should not be affected by block.");
+}
+
+- (void) testInstanceForEntityForThread
+{
+    HAEntityManager* manager1 = [HAEntityManager instanceForPath:dbFilePath];
+    HAEntityManager* manager2 = [HAEntityManager instanceForPath:dbFilePath2];
+    
+    [manager1 addEntityClass:[self class]];
+    [manager2 addEntityClass:[self class]];
+    
+    __block HAEntityManager* threadManager1;
+    [manager1 useInstance:^(HAEntityManager *entityManager) {
+        threadManager1 = [HAEntityManager instanceForEntity:[self class]];
+    }];
+    
+    __block HAEntityManager* threadManager2;
+    [manager2 useInstance:^(HAEntityManager *entityManager) {
+        threadManager2 = [HAEntityManager instanceForEntity:[self class]];
+    }];
+
+    STAssertEqualObjects(threadManager1, manager1, @"Verify instanceForEntity should return block'ed instance.");
+    STAssertEqualObjects(threadManager2, manager2, @"Verify instanceForEntity should return block'ed instance.");
+}
+
+
 - (void)testInstanceClose
 {
     [HAEntityManager instanceForPath:dbFilePath];
