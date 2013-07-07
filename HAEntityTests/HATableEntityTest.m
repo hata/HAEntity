@@ -466,6 +466,14 @@
     
 }
 
+- (void)testRowidNum
+{
+    HATableEntityTestSample3* sample3 = [HATableEntityTestSample3 new];
+    sample3.stringValue = @"foo";
+    [sample3 save];
+
+    STAssertEquals(sample3.rowidNum, [NSNumber numberWithLongLong:sample3.rowid], @"Verify rowid and rowidNum.");
+}
 
 
 @end

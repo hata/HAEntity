@@ -436,5 +436,9 @@ static NSCache* CACHE_TABLE = nil;
     return propertyIsLoad ? self : nil;
 }
 
+- (NSNumber*) rowidNum
+{
+    return [NSNumber numberWithLongLong:_rowid];
+}
 
 @end

@@ -48,4 +48,6 @@
 
 - (id) reload;
 
+- (NSNumber*) rowidNum;
+
 @end
